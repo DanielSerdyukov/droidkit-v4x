@@ -1,0 +1,4 @@
+droidkit
+========
+
+Android Development Kit
