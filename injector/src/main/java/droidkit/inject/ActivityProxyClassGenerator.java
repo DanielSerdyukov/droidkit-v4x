@@ -24,7 +24,7 @@ class ActivityProxyClassGenerator extends ProxyClassGenerator {
     @Override
     protected void onEmitImports(JavaWriter writer) throws IOException {
         super.onEmitImports(writer);
-        writer.emitImports("android.view.View", "droidkit.view.Views");
+        writer.emitImports("android.app.Activity", "android.view.View", "droidkit.view.Views");
     }
 
     @Override
@@ -45,7 +45,8 @@ class ActivityProxyClassGenerator extends ProxyClassGenerator {
         writer.beginMethod("void", "setContentView", EnumSet.of(Modifier.PUBLIC), "View", "view");
         writer.emitStatement("super.setContentView(view)");
         writer.emitStatement("injectViews()");
-        writer.endMethod().emitEmptyLine();
+        writer.endMethod();
+        writer.emitEmptyLine();
     }
 
     private void emitInjectViews(JavaWriter writer) throws IOException {

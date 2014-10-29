@@ -34,6 +34,8 @@ class ProxyClassGeneratorFactory {
     ProxyClassGenerator getGenerator(TypeMirror classMirror) {
         if (mTypes.isSubtype(classMirror, mActivityMirror)) {
             return getActivityProxyGenerator(classMirror);
+        } else if (mTypes.isSubtype(classMirror, mFragmentMirror)) {
+            return getFragmentProxyGenerator(classMirror);
         }
         return null;
     }
@@ -53,6 +55,15 @@ class ProxyClassGeneratorFactory {
         ProxyClassGenerator generator = mProxyClasses.get(classMirror);
         if (generator == null) {
             generator = new ActivityProxyClassGenerator(mEnv, (TypeElement) mTypes.asElement(classMirror));
+            mProxyClasses.put(classMirror, generator);
+        }
+        return generator;
+    }
+
+    private ProxyClassGenerator getFragmentProxyGenerator(TypeMirror classMirror) {
+        ProxyClassGenerator generator = mProxyClasses.get(classMirror);
+        if (generator == null) {
+            generator = new FragmentProxyClassGenerator(mEnv, (TypeElement) mTypes.asElement(classMirror));
             mProxyClasses.put(classMirror, generator);
         }
         return generator;

@@ -20,6 +20,12 @@ public class MockActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(droidkit.test.R.layout.ac_main);
+        if (savedInstanceState == null) {
+            getFragmentManager()
+                    .beginTransaction()
+                    .add(droidkit.test.R.id.fragment, new MockFragment())
+                    .commit();
+        }
     }
 
     public TextView getText1() {

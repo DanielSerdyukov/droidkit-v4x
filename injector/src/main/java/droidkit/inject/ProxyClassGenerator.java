@@ -1,12 +1,12 @@
 package droidkit.inject;
 
 import com.squareup.javawriter.JavaWriter;
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Names;
 
 import java.io.BufferedWriter;
@@ -108,36 +108,23 @@ class ProxyClassGenerator {
     }
 
     protected JCTree.JCMethodDecl makeInjectViewMethod(VariableElement field, int viewId) {
-        return mTreeMaker.MethodDef(
-                mTreeMaker.Modifiers(0),
-                mElements.getName(String.format("injectView%d", viewId)),
-                mTreeMaker.TypeIdent(TypeTag.VOID),
-                JavacUtils.<JCTree.JCTypeParameter>list(),
-                JavacUtils.<JCTree.JCVariableDecl>list(),
-                JavacUtils.<JCTree.JCExpression>list(),
-                JavacUtils.block(mTreeMaker, mTreeMaker.Exec(mTreeMaker.Assign(
-                        mTreeMaker.Ident(mElements.getName(field.getSimpleName().toString())),
-                        mTreeMaker.Exec(mTreeMaker.Apply(
-                                JavacUtils.<JCTree.JCExpression>list(),
-                                JavacUtils.selector(mTreeMaker, mNames, "droidkit.view", "Views", "findById"),
-                                JavacUtils.list(mTreeMaker.Ident(mNames._this), mTreeMaker.Literal(viewId))
-                        )).getExpression()
-                ))),
-                null
-        );
+        return makeInjectViewMethod(field, mTreeMaker.Ident(mNames._this), viewId);
+    }
+
+    protected JCTree.JCMethodDecl makeInjectViewMethod(VariableElement field, String root, int viewId) {
+        return makeInjectViewMethod(field, mTreeMaker.Ident(mElements.getName(root)), viewId,
+                mTreeMaker.VarDef(mTreeMaker.Modifiers(Flags.PARAMETER), mElements.getName(root),
+                        mTreeMaker.Ident(mElements.getName("View")), null));
     }
 
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    protected void emitMethodToDelegate(JCTree... trees) {
+    protected void emitMethodToDelegate(JCTree tree) {
         final JCTree.JCClassDecl classTree = (JCTree.JCClassDecl) mElements.getTree(mClassElement);
-        final ListBuffer<JCTree> defs = new ListBuffer<>();
-        defs.appendList(classTree.defs);
-        defs.appendArray(trees);
-        classTree.defs = defs.toList();
+        classTree.defs = classTree.defs.append(tree);
     }
 
     protected void onEmitImports(JavaWriter writer) throws IOException {
-        writer.emitImports("android.app.Activity");
+
     }
 
     protected void onEmitFields(JavaWriter writer) throws IOException {
@@ -154,6 +141,27 @@ class ProxyClassGenerator {
 
     protected Map<VariableElement, int[]> getInjectViews() {
         return mInjectViews;
+    }
+
+    private JCTree.JCMethodDecl makeInjectViewMethod(VariableElement field, JCTree.JCIdent root, int viewId,
+                                                     JCTree.JCVariableDecl... params) {
+        return mTreeMaker.MethodDef(
+                mTreeMaker.Modifiers(0),
+                mElements.getName(String.format("injectView%d", viewId)),
+                mTreeMaker.TypeIdent(TypeTag.VOID),
+                JavacUtils.<JCTree.JCTypeParameter>list(),
+                JavacUtils.list(params),
+                JavacUtils.<JCTree.JCExpression>list(),
+                JavacUtils.block(mTreeMaker, mTreeMaker.Exec(mTreeMaker.Assign(
+                        mTreeMaker.Ident(mElements.getName(field.getSimpleName().toString())),
+                        mTreeMaker.Exec(mTreeMaker.Apply(
+                                JavacUtils.<JCTree.JCExpression>list(),
+                                JavacUtils.selector(mTreeMaker, mNames, "droidkit.view", "Views", "findById"),
+                                JavacUtils.list(root, mTreeMaker.Literal(viewId))
+                        )).getExpression()
+                ))),
+                null
+        );
     }
 
 }
