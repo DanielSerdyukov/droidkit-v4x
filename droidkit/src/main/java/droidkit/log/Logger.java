@@ -9,8 +9,8 @@ import java.io.BufferedWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import droidkit.io.IOUtils;
 import droidkit.util.Dynamic;
-import droidkit.util.IOUtils;
 
 /**
  * @author Daniel Serdyukov
@@ -18,8 +18,6 @@ import droidkit.util.IOUtils;
 public class Logger {
 
     private final String mTag;
-
-    private Level mLevel = Level.DEBUG;
 
     Logger(@NonNull String tag) {
         mTag = tag;
@@ -89,10 +87,6 @@ public class Logger {
         return "null";
     }
 
-    void setLevel(@NonNull Level level) {
-        mLevel = level;
-    }
-
     private void logD(@NonNull StackTraceElement caller, @NonNull String message) {
         Log.d(makeTag(caller), message);
     }
@@ -111,10 +105,6 @@ public class Logger {
 
     private void logWtf(@NonNull StackTraceElement caller, @NonNull String message) {
         Log.wtf(makeTag(caller), message);
-    }
-
-    private boolean isLoggable(@NonNull Level level) {
-        return level.ordinal() >= mLevel.ordinal();
     }
 
     @NonNull

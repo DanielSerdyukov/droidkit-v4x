@@ -1,4 +1,4 @@
-package droidkit.util;
+package droidkit.io;
 
 import android.database.Cursor;
 import android.support.annotation.NonNull;
@@ -40,9 +40,13 @@ public final class IOUtils {
 
     public static void copy(@NonNull InputStream in, @NonNull OutputStream out) throws IOException {
         int bytes;
-        final byte[] buffer = new byte[BUFFER_SIZE];
-        while ((bytes = in.read(buffer)) != EOF) {
-            out.write(buffer, 0, bytes);
+        final byte[] buffer = ByteArrayPool.get().obtain();
+        try {
+            while ((bytes = in.read(buffer)) != EOF) {
+                out.write(buffer, 0, bytes);
+            }
+        } finally {
+            ByteArrayPool.get().release(buffer);
         }
     }
 
