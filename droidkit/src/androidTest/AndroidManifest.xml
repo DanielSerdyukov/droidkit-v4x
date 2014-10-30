@@ -2,8 +2,7 @@
     package="droidkit">
 
     <application>
-        <activity android:name="droidkit.view.MockActivity" />
-        <activity android:name="droidkit.inject.MockActivity" />
+        <activity android:name="droidkit.inject.mock.InjectActivity" />
     </application>
 
 </manifest>

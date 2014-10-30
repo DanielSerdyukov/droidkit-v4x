@@ -12,3 +12,10 @@ allprojects {
         jcenter()
     }
 }
+
+ext {
+    compileSdkVersion = 21
+    buildToolsVersion = "21.0.2"
+    versionCode = 400001
+    versionName = "4.0.1"
+}

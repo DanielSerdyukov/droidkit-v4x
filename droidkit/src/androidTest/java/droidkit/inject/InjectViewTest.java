@@ -4,37 +4,52 @@ import android.test.ActivityInstrumentationTestCase2;
 
 import junit.framework.Assert;
 
+import droidkit.inject.mock.InjectActivity;
+import droidkit.inject.mock.InjectFragment;
+
 /**
  * @author Daniel Serdyukov
  */
-public class InjectViewTest extends ActivityInstrumentationTestCase2<MockActivity> {
+public class InjectViewTest extends ActivityInstrumentationTestCase2<InjectActivity> {
+
+    private InjectActivity mActivity;
+
+    private InjectFragment mFragment;
 
     public InjectViewTest() {
-        super(MockActivity.class);
+        super(InjectActivity.class);
     }
 
-    public void testActivityInject() throws Exception {
-        Assert.assertNotNull(getActivity().getText1());
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        mActivity = getActivity();
+        mFragment = new InjectFragment();
+        mActivity.getFragmentManager()
+                .beginTransaction()
+                .add(droidkit.test.R.id.fragment, mFragment)
+                .commit();
+        getInstrumentation().waitForIdleSync();
     }
 
-    public void testActivityInjectPrivate() throws Exception {
-        Assert.assertNotNull(getActivity().getButton1());
+    public void testPreconditions() throws Exception {
+        Assert.assertNotNull("Fragment view is null", mFragment.getView());
     }
 
-    public void testFragmentOnActivityCreatedCalled() throws Exception {
-        Assert.assertTrue(getFragment().isOnActivityCreatedCalled());
+    public void testActivityInjectView1() throws Exception {
+        Assert.assertNotNull(mActivity.getFrame());
     }
 
-    public void testFragmentInject() throws Exception {
-        Assert.assertNotNull(getFragment().getListView());
+    public void testActivityInjectView2() throws Exception {
+        Assert.assertNotNull(mActivity.getButton1());
     }
 
-    public void testFragmentInjectPrivate() throws Exception {
-        Assert.assertNotNull(getFragment().getInputArea());
+    public void testFragmentInjectView3() throws Exception {
+        Assert.assertNotNull(mFragment.getListView());
     }
 
-    private MockFragment getFragment() {
-        return (MockFragment) getActivity().getFragmentManager().findFragmentById(droidkit.test.R.id.fragment);
+    public void testFragmentInjectView4() throws Exception {
+        Assert.assertNotNull(mFragment.getButton1());
     }
 
 }

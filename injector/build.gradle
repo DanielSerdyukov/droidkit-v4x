@@ -8,9 +8,6 @@ dependencies {
     compile 'com.squareup:javawriter:2.5.+'
 }
 
-/*
-jar {
-    from configurations.compile.findAll {
-        it.name.contains('javawriter')
-    }.collect { zipTree(it) }
+/*jar {
+    from configurations.compile.findAll { it.name.contains('javawriter') }.collect { zipTree(it) }
 }*/

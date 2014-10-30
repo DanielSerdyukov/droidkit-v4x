@@ -2,12 +2,7 @@ package droidkit.inject;
 
 import com.squareup.javawriter.JavaWriter;
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.TypeTag;
-import com.sun.tools.javac.model.JavacElements;
-import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.util.Names;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,15 +11,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
 /**
@@ -34,29 +28,19 @@ class ProxyClassGenerator {
 
     private static final String PROXY_SUFFIX = "$Proxy";
 
-    private final JavacProcessingEnvironment mJavac;
-
-    private final TreeMaker mTreeMaker;
-
-    private final JavacElements mElements;
-
-    private final Names mNames;
+    private final JavacTools mTools;
 
     private final TypeElement mClassElement;
 
     private final PackageElement mPackageElement;
 
-    private final Types mTypes;
+    private final Map<VariableElement, int[]> mInjectView = new HashMap<>();
 
-    private final Map<VariableElement, int[]> mInjectViews = new HashMap<>();
+    private final Map<ExecutableElement, int[]> mOnClick = new HashMap<>();
 
-    ProxyClassGenerator(ProcessingEnvironment env, TypeElement classElement) {
-        mJavac = (JavacProcessingEnvironment) env;
-        mTreeMaker = TreeMaker.instance(mJavac.getContext());
-        mElements = mJavac.getElementUtils();
-        mNames = Names.instance(mJavac.getContext());
+    ProxyClassGenerator(JavacTools tools, TypeElement classElement) {
+        mTools = tools;
         mClassElement = classElement;
-        mTypes = env.getTypeUtils();
         mPackageElement = (PackageElement) mClassElement.getEnclosingElement();
     }
 
@@ -70,16 +54,23 @@ class ProxyClassGenerator {
         }
     }
 
-    void injectView(Element element, Annotation annotation) {
-        final VariableElement field = (VariableElement) element;
+    void injectView(VariableElement field, Annotation annotation) {
         final int[] ids = getAnnotationValue(annotation);
-        mInjectViews.put(field, ids);
+        mInjectView.put(field, ids);
+    }
+
+    void injectOnClick(ExecutableElement method, Annotation annotation) {
+        if (method.getModifiers().contains(Modifier.PRIVATE)) {
+            mTools.<JCTree.JCMethodDecl>getTree(method).mods.flags ^= Flags.PRIVATE;
+        }
+        final int[] ids = getAnnotationValue(annotation);
+        mOnClick.put(method, ids);
     }
 
     void generate() throws IOException {
         final String className = mClassElement.getSimpleName().toString();
         final String fqcn = String.format("%s.%s%s", mPackageElement, className, PROXY_SUFFIX);
-        final JavaFileObject sourceFile = mJavac.getFiler().createSourceFile(fqcn);
+        final JavaFileObject sourceFile = mTools.createSourceFile(fqcn);
         final JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         try {
             writer.setIndent("    ");
@@ -88,7 +79,7 @@ class ProxyClassGenerator {
             onEmitImports(writer);
             writer.emitEmptyLine();
             writer.beginType(fqcn, "class", EnumSet.noneOf(Modifier.class),
-                    mTypes.asElement(mClassElement.getSuperclass()).getSimpleName().toString());
+                    mTools.asElement(mClassElement.getSuperclass()).getSimpleName().toString());
             writer.emitEmptyLine();
             writer.emitField(className, "mDelegate", EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
                     "(" + className + ") this");
@@ -102,66 +93,103 @@ class ProxyClassGenerator {
     }
 
     void proxy() {
-        final JCTree.JCClassDecl classTree = (JCTree.JCClassDecl) mElements.getTree(mClassElement);
-        classTree.extending = mTreeMaker.Ident(mElements.getName(String
-                .format("%s%s", mClassElement.getSimpleName(), PROXY_SUFFIX)));
+        mTools.extend(mClassElement, String.format("%s%s", mClassElement.getSimpleName(), PROXY_SUFFIX));
     }
 
-    protected JCTree.JCMethodDecl makeInjectViewMethod(VariableElement field, int viewId) {
-        return makeInjectViewMethod(field, mTreeMaker.Ident(mNames._this), viewId);
+    protected JavacTools getTools() {
+        return mTools;
     }
 
-    protected JCTree.JCMethodDecl makeInjectViewMethod(VariableElement field, String root, int viewId) {
-        return makeInjectViewMethod(field, mTreeMaker.Ident(mElements.getName(root)), viewId,
-                mTreeMaker.VarDef(mTreeMaker.Modifiers(Flags.PARAMETER), mElements.getName(root),
-                        mTreeMaker.Ident(mElements.getName("View")), null));
-    }
-
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    protected void emitMethodToDelegate(JCTree tree) {
-        final JCTree.JCClassDecl classTree = (JCTree.JCClassDecl) mElements.getTree(mClassElement);
-        classTree.defs = classTree.defs.append(tree);
+    protected TypeElement getClassElement() {
+        return mClassElement;
     }
 
     protected void onEmitImports(JavaWriter writer) throws IOException {
-
+        writer.emitImports(
+                "android.support.v4.util.ArrayMap",
+                "android.view.View",
+                "droidkit.view.Views",
+                "java.util.Map"
+        );
     }
 
     protected void onEmitFields(JavaWriter writer) throws IOException {
-
+        writer.emitField("ArrayMap<View, View.OnClickListener>", "mOnClick",
+                EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
+                "new ArrayMap<View, View.OnClickListener>()");
+        writer.emitEmptyLine();
     }
 
     protected void onEmitMethods(JavaWriter writer) throws IOException {
 
     }
 
-    protected JavacProcessingEnvironment getJavac() {
-        return mJavac;
+    protected Map<VariableElement, int[]> getInjectView() {
+        return mInjectView;
     }
 
-    protected Map<VariableElement, int[]> getInjectViews() {
-        return mInjectViews;
+    protected Map<ExecutableElement, int[]> getOnClick() {
+        return mOnClick;
     }
 
-    private JCTree.JCMethodDecl makeInjectViewMethod(VariableElement field, JCTree.JCIdent root, int viewId,
-                                                     JCTree.JCVariableDecl... params) {
-        return mTreeMaker.MethodDef(
-                mTreeMaker.Modifiers(0),
-                mElements.getName(String.format("injectView%d", viewId)),
-                mTreeMaker.TypeIdent(TypeTag.VOID),
-                JavacUtils.<JCTree.JCTypeParameter>list(),
-                JavacUtils.list(params),
-                JavacUtils.<JCTree.JCExpression>list(),
-                JavacUtils.block(mTreeMaker, mTreeMaker.Exec(mTreeMaker.Assign(
-                        mTreeMaker.Ident(mElements.getName(field.getSimpleName().toString())),
-                        mTreeMaker.Exec(mTreeMaker.Apply(
-                                JavacUtils.<JCTree.JCExpression>list(),
-                                JavacUtils.selector(mTreeMaker, mNames, "droidkit.view", "Views", "findById"),
-                                JavacUtils.list(root, mTreeMaker.Literal(viewId))
-                        )).getExpression()
-                ))),
-                null
-        );
+    protected void emitInjectOnClickMethods(JavaWriter writer, boolean rootViewAttached) throws IOException {
+        final Map<ExecutableElement, int[]> onClick = getOnClick();
+        for (final Map.Entry<ExecutableElement, int[]> entry : onClick.entrySet()) {
+            final ExecutableElement method = entry.getKey();
+            final List<? extends VariableElement> parameters = method.getParameters();
+            boolean hasViewParameter = false;
+            if (!parameters.isEmpty()) {
+                if (parameters.size() == 1 && getTools().isSubtype(parameters.get(0), "android.view.View")) {
+                    hasViewParameter = true;
+                } else {
+                    throw new IOException(String.format("Invalid method signature, expected '%1$s.%2$s(View view)'" +
+                            " or '%1$s.%2$s()'", getClassElement().getSimpleName(), method.getSimpleName()));
+                }
+            }
+            final int[] viewIds = entry.getValue();
+            for (final int viewId : viewIds) {
+                if (rootViewAttached) {
+                    writer.beginMethod("void", String.format("injectOnClick%d", viewId), EnumSet.of(Modifier.PRIVATE),
+                            "View", "rootViewAttached");
+                } else {
+                    writer.beginMethod("void", String.format("injectOnClick%d", viewId), EnumSet.of(Modifier.PRIVATE));
+                }
+                writer.emitStatement("final View view = Views.findById(%s, %d)",
+                        rootViewAttached ? "rootViewAttached" : "this", viewId);
+                writer.beginControlFlow("if(view != null)");
+                writer.beginControlFlow("mOnClick.put(view, new View.OnClickListener()");
+                writer.emitAnnotation(Override.class);
+                writer.beginMethod("void", "onClick", EnumSet.of(Modifier.PUBLIC), "View", "view");
+                if (hasViewParameter) {
+                    writer.emitStatement("mDelegate.%s(view)", method.getSimpleName());
+                } else {
+                    writer.emitStatement("mDelegate.%s()", method.getSimpleName());
+                }
+                writer.endMethod();
+                writer.endControlFlow(")");
+                writer.endControlFlow();
+                writer.endMethod();
+                writer.emitEmptyLine();
+            }
+        }
+    }
+
+    protected void emitResumeOnClickMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod("void", "resumeOnClick", EnumSet.of(Modifier.PRIVATE));
+        writer.beginControlFlow("for(final Map.Entry<View, View.OnClickListener> entry : mOnClick.entrySet())");
+        writer.emitStatement("entry.getKey().setOnClickListener(entry.getValue())");
+        writer.endControlFlow();
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    protected void emitPauseOnClickMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod("void", "pauseOnClick", EnumSet.of(Modifier.PRIVATE));
+        writer.beginControlFlow("for(final View view : mOnClick.keySet())");
+        writer.emitStatement("view.setOnClickListener(null)");
+        writer.endControlFlow();
+        writer.endMethod();
+        writer.emitEmptyLine();
     }
 
 }

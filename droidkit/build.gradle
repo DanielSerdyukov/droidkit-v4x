@@ -1,15 +1,15 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.0.2"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "droidkit"
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 305001
-        versionName "3.5.1"
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
     }
 
     compileOptions {

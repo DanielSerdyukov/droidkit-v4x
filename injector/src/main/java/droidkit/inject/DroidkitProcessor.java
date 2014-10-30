@@ -1,6 +1,5 @@
 package droidkit.inject;
 
-import java.lang.annotation.Annotation;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -9,31 +8,29 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 /**
  * @author Daniel Serdyukov
  */
 @SupportedAnnotationTypes({
-        "droidkit.inject.InjectView"
+        "droidkit.inject.InjectView",
+        "droidkit.inject.OnClick"
 })
 public class DroidkitProcessor extends AbstractProcessor {
 
     private ProxyClassGeneratorFactory mGeneratorFactory;
 
-    private Elements mElements;
-
-    private Types mTypes;
+    private JavacTools mTools;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         mGeneratorFactory = new ProxyClassGeneratorFactory(processingEnv);
-        mElements = processingEnv.getElementUtils();
-        mTypes = processingEnv.getTypeUtils();
+        mTools = new JavacTools(processingEnv);
     }
 
     @Override
@@ -61,13 +58,11 @@ public class DroidkitProcessor extends AbstractProcessor {
     }
 
     private void process(ProxyClassGenerator generator, TypeElement annotation, Element element) {
-        if (isSameType(annotation, InjectView.class)) {
-            generator.injectView(element, element.getAnnotation(InjectView.class));
+        if (mTools.isSameType(annotation, InjectView.class)) {
+            generator.injectView((VariableElement) element, element.getAnnotation(InjectView.class));
+        } else if (mTools.isSameType(annotation, OnClick.class)) {
+            generator.injectOnClick((ExecutableElement) element, element.getAnnotation(OnClick.class));
         }
-    }
-
-    private boolean isSameType(TypeElement element, Class<? extends Annotation> type) {
-        return mTypes.isSameType(element.asType(), mElements.getTypeElement(type.getName()).asType());
     }
 
 }
