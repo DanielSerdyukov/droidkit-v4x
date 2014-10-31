@@ -19,8 +19,35 @@ public class DynamicTest extends TestCase {
         Assert.assertEquals(Sequence.class, Dynamic.<Sequence>forName("droidkit.Sequence"));
     }
 
+    public void testInitByClass() throws Exception {
+        final MockObject instance = Dynamic.init(MockObject.class, "John", 25);
+        Assert.assertNotNull(instance);
+        Assert.assertEquals("John", instance.mName);
+        Assert.assertEquals(25, instance.mAge);
+    }
+
+    public void testInitByClassName() throws Exception {
+        final MockObject instance = Dynamic.init(MockObject.class.getName(), "John", 25);
+        Assert.assertNotNull(instance);
+        Assert.assertEquals("John", instance.mName);
+        Assert.assertEquals(25, instance.mAge);
+    }
+
     private StackTraceElement getCallerInternal() {
         return Dynamic.getCaller();
+    }
+
+    private static final class MockObject {
+
+        private final String mName;
+
+        private final int mAge;
+
+        private MockObject(String name, int age) {
+            mName = name;
+            mAge = age;
+        }
+
     }
 
 }
