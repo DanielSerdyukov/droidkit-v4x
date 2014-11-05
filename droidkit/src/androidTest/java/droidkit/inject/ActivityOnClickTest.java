@@ -2,7 +2,6 @@ package droidkit.inject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
-import android.test.suitebuilder.annotation.Suppress;
 
 import junit.framework.Assert;
 
@@ -11,7 +10,6 @@ import droidkit.inject.mock.InjectActivity;
 /**
  * @author Daniel Serdyukov
  */
-@Suppress
 public class ActivityOnClickTest extends ActivityInstrumentationTestCase2<InjectActivity> {
 
     private InjectActivity mActivity;

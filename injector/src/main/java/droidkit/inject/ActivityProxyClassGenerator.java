@@ -6,6 +6,7 @@ import com.sun.tools.javac.tree.JCTree;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -17,36 +18,52 @@ import javax.lang.model.element.VariableElement;
  */
 class ActivityProxyClassGenerator extends ProxyClassGenerator {
 
+    private final boolean mUseRootView;
+
     ActivityProxyClassGenerator(JavacTools tools, TypeElement classElement) {
+        this(tools, classElement, false);
+    }
+
+    ActivityProxyClassGenerator(JavacTools tools, TypeElement classElement, boolean useRootView) {
         super(tools, classElement);
+        mUseRootView = useRootView;
     }
 
     @Override
     protected void onEmitImports(JavaWriter writer) throws IOException {
         super.onEmitImports(writer);
         writer.emitImports(
-                "android.app.Activity",
+                getClassElement().getSuperclass().toString(),
                 "android.os.Bundle"
         );
     }
 
     @Override
-    protected void onEmitFields(JavaWriter writer) throws IOException {
-        super.onEmitFields(writer);
-
-    }
-
-    @Override
     protected void onEmitMethods(JavaWriter writer) throws IOException {
         super.onEmitMethods(writer);
+        final boolean injectView = !getInjectView().isEmpty();
+        if (injectView) {
+            onEmitInjectView(writer);
+        }
+        final boolean injectListeners = !getOnClick().isEmpty();
+        final Set<Modifier> modifiers = mUseRootView ? EnumSet.of(Modifier.PUBLIC) : EnumSet.of(Modifier.PROTECTED);
+        if (injectListeners) {
+            emitOnResume(writer, modifiers);
+            emitOnPause(writer, modifiers);
+            emitOnDestroy(writer, modifiers);
+        }
+        if (injectView && !mUseRootView) {
+            emitInjectViewsMethod(writer);
+        }
+        if (injectListeners) {
+            emitInjectOnClickMethods(writer, mUseRootView);
+            emitResumeOnClickMethod(writer);
+            emitPauseOnClickMethod(writer);
+        }
+    }
+
+    protected void onEmitInjectView(JavaWriter writer) throws IOException {
         emitSetContentView(writer);
-        emitOnResume(writer);
-        emitOnPause(writer);
-        emitOnDestroy(writer);
-        emitInjectViewsMethod(writer);
-        emitInjectOnClickMethods(writer, false);
-        emitResumeOnClickMethod(writer);
-        emitPauseOnClickMethod(writer);
     }
 
     private void emitSetContentView(JavaWriter writer) throws IOException {
@@ -77,28 +94,29 @@ class ActivityProxyClassGenerator extends ProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitOnResume(JavaWriter writer) throws IOException {
+    private void emitOnResume(JavaWriter writer, Set<Modifier> modifiers) throws IOException {
         writer.emitAnnotation(Override.class);
-        writer.beginMethod("void", "onResume", EnumSet.of(Modifier.PROTECTED));
+        writer.beginMethod("void", "onResume", modifiers);
         writer.emitStatement("super.onResume()");
         writer.emitStatement("resumeOnClick()");
         writer.endMethod();
         writer.emitEmptyLine();
     }
 
-    private void emitOnPause(JavaWriter writer) throws IOException {
+    private void emitOnPause(JavaWriter writer, Set<Modifier> modifiers) throws IOException {
         writer.emitAnnotation(Override.class);
-        writer.beginMethod("void", "onPause", EnumSet.of(Modifier.PROTECTED));
+        writer.beginMethod("void", "onPause", modifiers);
         writer.emitStatement("pauseOnClick()");
         writer.emitStatement("super.onPause()");
         writer.endMethod();
         writer.emitEmptyLine();
     }
 
-    private void emitOnDestroy(JavaWriter writer) throws IOException {
+    private void emitOnDestroy(JavaWriter writer, Set<Modifier> modifiers) throws IOException {
         writer.emitAnnotation(Override.class);
-        writer.beginMethod("void", "onDestroy", EnumSet.of(Modifier.PROTECTED));
+        writer.beginMethod("void", "onDestroy", modifiers);
         writer.emitStatement("mOnClick.clear()");
+        writer.emitStatement("mOnLongClick.clear()");
         writer.emitStatement("super.onDestroy()");
         writer.endMethod();
         writer.emitEmptyLine();

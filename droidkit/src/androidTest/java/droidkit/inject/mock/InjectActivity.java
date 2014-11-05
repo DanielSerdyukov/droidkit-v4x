@@ -66,6 +66,12 @@ public class InjectActivity extends Activity {
 
     @OnClick(android.R.id.button1)
     private void onButton1Click(@NonNull View view) {
+        view.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return false;
+            }
+        });
         mClickedView1 = view;
         mButton1Clicked = true;
     }

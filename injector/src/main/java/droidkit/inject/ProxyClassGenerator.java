@@ -118,6 +118,10 @@ class ProxyClassGenerator {
                 EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
                 "new ArrayMap<View, View.OnClickListener>()");
         writer.emitEmptyLine();
+        writer.emitField("ArrayMap<View, View.OnLongClickListener>", "mOnLongClick",
+                EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
+                "new ArrayMap<View, View.OnLongClickListener>()");
+        writer.emitEmptyLine();
     }
 
     protected void onEmitMethods(JavaWriter writer) throws IOException {
@@ -187,6 +191,68 @@ class ProxyClassGenerator {
         writer.beginMethod("void", "pauseOnClick", EnumSet.of(Modifier.PRIVATE));
         writer.beginControlFlow("for(final View view : mOnClick.keySet())");
         writer.emitStatement("view.setOnClickListener(null)");
+        writer.endControlFlow();
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    protected void emitInjectOnLongClickMethods(JavaWriter writer, boolean rootViewAttached) throws IOException {
+        final Map<ExecutableElement, int[]> onClick = getOnClick();
+        for (final Map.Entry<ExecutableElement, int[]> entry : onClick.entrySet()) {
+            final ExecutableElement method = entry.getKey();
+            final List<? extends VariableElement> parameters = method.getParameters();
+            boolean hasViewParameter = false;
+            if (!parameters.isEmpty()) {
+                if (parameters.size() == 1 && getTools().isSubtype(parameters.get(0), "android.view.View")) {
+                    hasViewParameter = true;
+                } else {
+                    throw new IOException(String.format("Invalid method signature, expected '%1$s.%2$s(View view)'" +
+                            " or '%1$s.%2$s()'", getClassElement().getSimpleName(), method.getSimpleName()));
+                }
+            }
+            final int[] viewIds = entry.getValue();
+            for (final int viewId : viewIds) {
+                if (rootViewAttached) {
+                    writer.beginMethod("void", String.format("injectOnLongClick%d", viewId),
+                            EnumSet.of(Modifier.PRIVATE), "View", "rootViewAttached");
+                } else {
+                    writer.beginMethod("void", String.format("injectOnLongClick%d", viewId),
+                            EnumSet.of(Modifier.PRIVATE));
+                }
+                writer.emitStatement("final View view = Views.findById(%s, %d)",
+                        rootViewAttached ? "rootViewAttached" : "this", viewId);
+                writer.beginControlFlow("if(view != null)");
+                writer.beginControlFlow("mOnLongClick.put(view, new View.OnLongClickListener()");
+                writer.emitAnnotation(Override.class);
+                writer.beginMethod("boolean", "onLongClick", EnumSet.of(Modifier.PUBLIC), "View", "view");
+                if (hasViewParameter) {
+                    writer.emitStatement("mDelegate.%s(view)", method.getSimpleName());
+                } else {
+                    writer.emitStatement("mDelegate.%s()", method.getSimpleName());
+                }
+                writer.emitStatement("return true");
+                writer.endMethod();
+                writer.endControlFlow(")");
+                writer.endControlFlow();
+                writer.endMethod();
+                writer.emitEmptyLine();
+            }
+        }
+    }
+
+    protected void emitResumeOnLongClickMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod("void", "resumeOnLongClick", EnumSet.of(Modifier.PRIVATE));
+        writer.beginControlFlow("for(final Map.Entry<View, View.OnLongClickListener> entry : onLongClick.entrySet())");
+        writer.emitStatement("entry.getKey().setOnLongClickListener(entry.getValue())");
+        writer.endControlFlow();
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    protected void emitPauseOnLongClickMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod("void", "pauseOnLongClick", EnumSet.of(Modifier.PRIVATE));
+        writer.beginControlFlow("for(final View view : onLongClick.keySet())");
+        writer.emitStatement("view.setOnLongClickListener(null)");
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();

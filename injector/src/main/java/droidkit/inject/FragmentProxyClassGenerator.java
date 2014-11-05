@@ -15,31 +15,15 @@ import javax.lang.model.element.VariableElement;
 /**
  * @author Daniel Serdyukov
  */
-class FragmentProxyClassGenerator extends ProxyClassGenerator {
+class FragmentProxyClassGenerator extends ActivityProxyClassGenerator {
 
     FragmentProxyClassGenerator(JavacTools tools, TypeElement classElement) {
-        super(tools, classElement);
+        super(tools, classElement, true);
     }
 
     @Override
-    protected void onEmitImports(JavaWriter writer) throws IOException {
-        super.onEmitImports(writer);
-        writer.emitImports(
-                "android.app.Fragment",
-                "android.os.Bundle"
-        );
-    }
-
-    @Override
-    protected void onEmitMethods(JavaWriter writer) throws IOException {
-        super.onEmitMethods(writer);
+    protected void onEmitInjectView(JavaWriter writer) throws IOException {
         emitOnViewCreated(writer);
-        emitOnResume(writer);
-        emitOnPause(writer);
-        emitOnDestroyView(writer);
-        emitInjectOnClickMethods(writer, true);
-        emitResumeOnClickMethod(writer);
-        emitPauseOnClickMethod(writer);
     }
 
     private void emitOnViewCreated(JavaWriter writer) throws IOException {
@@ -70,33 +54,5 @@ class FragmentProxyClassGenerator extends ProxyClassGenerator {
         writer.endMethod();
         writer.emitEmptyLine();
     }
-
-    private void emitOnResume(JavaWriter writer) throws IOException {
-        writer.emitAnnotation(Override.class);
-        writer.beginMethod("void", "onResume", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("super.onResume()");
-        writer.emitStatement("resumeOnClick()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-    }
-
-    private void emitOnPause(JavaWriter writer) throws IOException {
-        writer.emitAnnotation(Override.class);
-        writer.beginMethod("void", "onPause", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("pauseOnClick()");
-        writer.emitStatement("super.onPause()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-    }
-
-    private void emitOnDestroyView(JavaWriter writer) throws IOException {
-        writer.emitAnnotation(Override.class);
-        writer.beginMethod("void", "onDestroyView", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("mOnClick.clear()");
-        writer.emitStatement("super.onDestroyView()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-    }
-
 
 }
