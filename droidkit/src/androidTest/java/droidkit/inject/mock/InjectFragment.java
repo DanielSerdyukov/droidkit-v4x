@@ -44,6 +44,11 @@ public class InjectFragment extends Fragment {
         return inflater.inflate(droidkit.test.R.layout.fmt_list, container, false);
     }
 
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+    }
+
     public ListView getListView() {
         return mListView;
     }
