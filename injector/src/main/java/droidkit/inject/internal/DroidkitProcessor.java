@@ -19,7 +19,8 @@ import javax.lang.model.element.TypeElement;
  */
 @SupportedAnnotationTypes({
         "droidkit.inject.InjectView",
-        "droidkit.inject.OnClick"
+        "droidkit.inject.OnClick",
+        "droidkit.inject.OnActionClick"
 })
 public class DroidkitProcessor extends AbstractProcessor {
 

@@ -22,6 +22,7 @@ import javax.lang.model.element.VariableElement;
 import javax.tools.JavaFileObject;
 
 import droidkit.inject.InjectView;
+import droidkit.inject.OnActionClick;
 import droidkit.inject.OnClick;
 
 /**
@@ -36,6 +37,8 @@ abstract class ProxyMaker {
     final Map<VariableElement, int[]> mInjectView = new HashMap<>();
 
     final Map<ExecutableElement, int[]> mOnClick = new HashMap<>();
+
+    final Map<ExecutableElement, int[]> mOnActionClick = new HashMap<>();
 
     final JavacTools mTools;
 
@@ -57,6 +60,9 @@ abstract class ProxyMaker {
         } else if (mTools.isSubtype(annotation, OnClick.class)) {
             mTools.<JCTree.JCMethodDecl>getTree(element).mods.flags &= ~Flags.PRIVATE;
             mOnClick.put((ExecutableElement) element, element.getAnnotation(OnClick.class).value());
+        } else if (mTools.isSubtype(annotation, OnActionClick.class)) {
+            mTools.<JCTree.JCMethodDecl>getTree(element).mods.flags &= ~Flags.PRIVATE;
+            mOnActionClick.put((ExecutableElement) element, element.getAnnotation(OnActionClick.class).value());
         }
     }
 

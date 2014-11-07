@@ -11,11 +11,11 @@ import droidkit.inject.mock.InjectFragment;
 /**
  * @author Daniel Serdyukov
  */
-public class FragmentOnClickTest extends ActivityInstrumentationTestCase2<InjectActivity> {
+public class FragmentInjectionTest extends ActivityInstrumentationTestCase2<InjectActivity> {
 
     private InjectFragment mFragment;
 
-    public FragmentOnClickTest() {
+    public FragmentInjectionTest() {
         super(InjectActivity.class);
     }
 

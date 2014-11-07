@@ -2,7 +2,6 @@ package droidkit.inject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
-import android.test.suitebuilder.annotation.Suppress;
 
 import junit.framework.Assert;
 
@@ -11,11 +10,11 @@ import droidkit.inject.mock.InjectActivity;
 /**
  * @author Daniel Serdyukov
  */
-public class ActivityOnClickTest extends ActivityInstrumentationTestCase2<InjectActivity> {
+public class ActivityInjectionTest extends ActivityInstrumentationTestCase2<InjectActivity> {
 
     private InjectActivity mActivity;
 
-    public ActivityOnClickTest() {
+    public ActivityInjectionTest() {
         super(InjectActivity.class);
     }
 
@@ -26,23 +25,38 @@ public class ActivityOnClickTest extends ActivityInstrumentationTestCase2<Inject
         getInstrumentation().waitForIdleSync();
     }
 
-    public void testActivityOnButton1Click() throws Exception {
+    public void testOnClickButton1() throws Exception {
         TouchUtils.clickView(this, mActivity.getButton1());
         getInstrumentation().waitForIdleSync();
         Assert.assertTrue(mActivity.isButton1Clicked());
         Assert.assertEquals(mActivity.getButton1(), mActivity.getClickedView1());
     }
 
-    public void testActivityOnButton2Click() throws Exception {
+    public void testOnClickButton2() throws Exception {
         TouchUtils.clickView(this, mActivity.findViewById(android.R.id.button2));
         getInstrumentation().waitForIdleSync();
         Assert.assertTrue(mActivity.isButton2Clicked());
     }
 
-    public void testActivityOnButton3Click() throws Exception {
+    public void testOnClickButton3() throws Exception {
         TouchUtils.clickView(this, mActivity.findViewById(android.R.id.button3));
         getInstrumentation().waitForIdleSync();
         Assert.assertTrue(mActivity.isButton3Clicked());
+    }
+
+    public void testOnActionClickTest1() throws Exception {
+        getInstrumentation().invokeMenuActionSync(mActivity, droidkit.test.R.id.action_test1, 0);
+        Assert.assertTrue(mActivity.isActionTest1Clicked());
+    }
+
+    public void testOnActionClickTest2() throws Exception {
+        getInstrumentation().invokeMenuActionSync(mActivity, droidkit.test.R.id.action_test2, 0);
+        Assert.assertTrue(mActivity.isActionTest2Clicked());
+    }
+
+    public void testOnActionClickTest3() throws Exception {
+        getInstrumentation().invokeMenuActionSync(mActivity, droidkit.test.R.id.action_test3, 0);
+        Assert.assertEquals("test3", mActivity.getActionTest3Title());
     }
 
 }

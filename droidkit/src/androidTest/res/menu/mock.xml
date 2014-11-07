@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_test1"
+        android:icon="@android:drawable/ic_menu_view"
+        android:showAsAction="ifRoom"
+        android:title="test1" />
+
+    <item
+        android:id="@+id/action_test2"
+        android:icon="@android:drawable/ic_menu_view"
+        android:showAsAction="always"
+        android:title="test2" />
+
+    <item
+        android:id="@+id/action_test3"
+        android:icon="@android:drawable/ic_menu_view"
+        android:showAsAction="never"
+        android:title="test3" />
+
+</menu>
