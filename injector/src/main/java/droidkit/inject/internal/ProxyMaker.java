@@ -28,11 +28,9 @@ import droidkit.inject.OnClick;
 /**
  * @author Daniel Serdyukov
  */
-abstract class ProxyMaker {
+abstract class ProxyMaker implements ClassMaker {
 
-    static final String M_DELEGATE = "mDelegate";
-
-    private static final String PROXY_SUFFIX = "$Proxy";
+    private static final String PROXY_SUFFIX = "Proxy";
 
     final Map<VariableElement, int[]> mInjectView = new HashMap<>();
 
@@ -53,7 +51,8 @@ abstract class ProxyMaker {
         mClassElement = (TypeElement) classElement;
     }
 
-    final void emit(Element element, TypeElement annotation) {
+    @Override
+    public void emit(Element element, TypeElement annotation) {
         if (mTools.isSubtype(annotation, InjectView.class)) {
             mTools.<JCTree.JCVariableDecl>getTree(element).mods.flags &= ~Flags.PRIVATE;
             mInjectView.put((VariableElement) element, element.getAnnotation(InjectView.class).value());
@@ -66,7 +65,8 @@ abstract class ProxyMaker {
         }
     }
 
-    void brewJava() throws IOException {
+    @Override
+    public void brewJava() throws IOException {
         final String fqcn = getQualifiedName();
         final String className = mClassElement.getSimpleName().toString();
         final JavaFileObject sourceFile = mTools.createSourceFile(fqcn);
@@ -96,7 +96,8 @@ abstract class ProxyMaker {
         }
     }
 
-    final void patchClass() {
+    @Override
+    public void patchClass() {
         mTools.extend(mClassElement, getSimpleName());
     }
 
@@ -121,11 +122,11 @@ abstract class ProxyMaker {
     }
 
     private String getQualifiedName() {
-        return String.format("%s.%s%s", getPackageName(), mClassElement.getSimpleName(), PROXY_SUFFIX);
+        return String.format("%s.%s$%s", getPackageName(), mClassElement.getSimpleName(), PROXY_SUFFIX);
     }
 
     private String getSimpleName() {
-        return String.format("%s%s", mClassElement.getSimpleName(), PROXY_SUFFIX);
+        return String.format("%s$%s", mClassElement.getSimpleName(), PROXY_SUFFIX);
     }
 
     private String getPackageName() {

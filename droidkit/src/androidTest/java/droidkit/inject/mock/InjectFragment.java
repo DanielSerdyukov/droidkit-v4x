@@ -1,22 +1,28 @@
 package droidkit.inject.mock;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 
+import droidkit.app.Loaders;
 import droidkit.inject.InjectView;
 import droidkit.inject.OnClick;
+import droidkit.inject.OnCreateLoader;
+import droidkit.inject.OnLoadFinished;
 
 /**
  * @author Daniel Serdyukov
  */
 public class InjectFragment extends Fragment {
+
+    public static final String LOADER_2_RESULT = "LOADER_2_RESULT";
 
     @InjectView(android.R.id.list)
     ListView mListView;
@@ -38,6 +44,10 @@ public class InjectFragment extends Fragment {
 
     private boolean mButton3Clicked;
 
+    private int mOnCreateLoaderId;
+
+    private String mOnLoadFinishedResult;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -45,8 +55,9 @@ public class InjectFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Loaders.init(getLoaderManager(), droidkit.test.R.id.mock_loader_2, null, this);
     }
 
     public ListView getListView() {
@@ -81,6 +92,14 @@ public class InjectFragment extends Fragment {
         return mButton3Clicked;
     }
 
+    public int getOnCreateLoaderId() {
+        return mOnCreateLoaderId;
+    }
+
+    public String getOnLoadFinishedResult() {
+        return mOnLoadFinishedResult;
+    }
+
     @OnClick(android.R.id.button1)
     private void onButton1Click(@NonNull View view) {
         mClickedView1 = view;
@@ -95,6 +114,18 @@ public class InjectFragment extends Fragment {
     @OnClick(android.R.id.button3)
     void onButton3Click() {
         mButton3Clicked = true;
+    }
+
+    @OnCreateLoader(droidkit.test.R.id.mock_loader_2)
+    Loader<String> onCreateMockLoader() {
+        mOnCreateLoaderId = droidkit.test.R.id.mock_loader_2;
+        return new SupportMockLoader(getActivity().getApplicationContext(), LOADER_2_RESULT);
+    }
+
+    @OnLoadFinished(droidkit.test.R.id.mock_loader_2)
+    void onOnMockLoaderFinished(String data) {
+        mOnLoadFinishedResult = data;
+        Loaders.destroy(getLoaderManager(), droidkit.test.R.id.mock_loader_2);
     }
 
 }

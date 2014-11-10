@@ -20,11 +20,15 @@ import javax.lang.model.element.TypeElement;
 @SupportedAnnotationTypes({
         "droidkit.inject.InjectView",
         "droidkit.inject.OnClick",
-        "droidkit.inject.OnActionClick"
+        "droidkit.inject.OnActionClick",
+        "droidkit.inject.OnCreateLoader",
+        "droidkit.inject.OnLoadFinished"
 })
 public class DroidkitProcessor extends AbstractProcessor {
 
-    private final Map<Element, ProxyMaker> mMakers = new HashMap<>();
+    private final Map<Element, ClassMaker> mProxyMakers = new HashMap<>();
+
+    private final Map<Element, ClassMaker> mLcMakers = new HashMap<>();
 
     private JavacTools mTools;
 
@@ -50,37 +54,55 @@ public class DroidkitProcessor extends AbstractProcessor {
                 final Element enclosingElement = element.getEnclosingElement();
                 if (enclosingElement.getKind() == ElementKind.CLASS
                         && enclosingElement.getEnclosingElement().getKind() == ElementKind.PACKAGE) {
-                    getOrCreateMaker(enclosingElement).emit(element, annotation);
+                    getOrCreateProxyMaker(enclosingElement).emit(element, annotation);
+                    final ClassMaker lcMaker = getOrCreateLcMaker(enclosingElement, annotation);
+                    if (lcMaker != null) {
+                        lcMaker.emit(element, annotation);
+                    }
                 } else {
                     throw new RuntimeException("Injection not supported in nested classes");
                 }
             }
         }
-        for (final ProxyMaker generator : mMakers.values()) {
-            try {
-                generator.brewJava();
-                generator.patchClass();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        try {
+            for (final ClassMaker maker : mProxyMakers.values()) {
+                maker.brewJava();
+                maker.patchClass();
             }
+            for (final ClassMaker maker : mLcMakers.values()) {
+                maker.brewJava();
+                maker.patchClass();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return true;
     }
 
-    private ProxyMaker getOrCreateMaker(Element enclosingElement) {
-        ProxyMaker generator = mMakers.get(enclosingElement);
-        if (generator == null) {
-            if (mTools.isSubtype(enclosingElement.asType(), "android.app.Activity")) {
-                generator = new ActivityMaker(mTools, enclosingElement);
-            } else if (mTools.isSubtype(enclosingElement.asType(), "android.app.Fragment")
-                    || mTools.isSubtype(enclosingElement.asType(), "android.support.v4.Fragment")) {
-                generator = new FragmentMaker(mTools, enclosingElement);
+    private ClassMaker getOrCreateProxyMaker(Element enclosingElement) {
+        ClassMaker maker = mProxyMakers.get(enclosingElement);
+        if (maker == null) {
+            if (mTools.isSubtype(enclosingElement, "android.app.Activity")) {
+                maker = new ActivityMaker(mTools, enclosingElement);
+            } else if (mTools.isSubtype(enclosingElement, "android.app.Fragment")
+                    || mTools.isSubtype(enclosingElement, "android.support.v4.app.Fragment")) {
+                maker = new FragmentMaker(mTools, enclosingElement);
             } else {
                 throw new RuntimeException("Annotation processing for " + enclosingElement + " not supported");
             }
-            mMakers.put(enclosingElement, generator);
+            mProxyMakers.put(enclosingElement, maker);
         }
-        return generator;
+        return maker;
+    }
+
+    private ClassMaker getOrCreateLcMaker(Element enclosingElement, TypeElement annotation) {
+        ClassMaker maker = mLcMakers.get(enclosingElement);
+        if (maker == null && (mTools.isSubtype(annotation, "droidkit.inject.OnCreateLoader")
+                || mTools.isSubtype(annotation, "droidkit.inject.OnLoadFinished"))) {
+            maker = new LCMaker(mTools, enclosingElement);
+            mLcMakers.put(enclosingElement, maker);
+        }
+        return maker;
     }
 
 }

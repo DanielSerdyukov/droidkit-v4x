@@ -59,6 +59,10 @@ class JavacTools {
         return mTypes.isSubtype(typeMirror, mElements.getTypeElement(type).asType());
     }
 
+    boolean isAssignable(TypeMirror typeMirror, String type) {
+        return mTypes.isAssignable(mElements.getTypeElement(type).asType(), typeMirror);
+    }
+
     void extend(Element target, String extend) {
         ((JCTree.JCClassDecl) mElements.getTree(target)).extending = mTreeMaker.Ident(mElements.getName(extend));
     }

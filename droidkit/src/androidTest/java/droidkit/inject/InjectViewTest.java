@@ -25,7 +25,7 @@ public class InjectViewTest extends ActivityInstrumentationTestCase2<InjectActiv
         super.setUp();
         mActivity = getActivity();
         mFragment = new InjectFragment();
-        mActivity.getFragmentManager()
+        mActivity.getSupportFragmentManager()
                 .beginTransaction()
                 .add(droidkit.test.R.id.fragment, mFragment)
                 .commit();

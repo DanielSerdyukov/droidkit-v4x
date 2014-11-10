@@ -1,22 +1,28 @@
 package droidkit.inject.mock;
 
-import android.app.Activity;
+import android.content.Loader;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
+import droidkit.app.Loaders;
 import droidkit.inject.InjectView;
 import droidkit.inject.OnActionClick;
 import droidkit.inject.OnClick;
+import droidkit.inject.OnCreateLoader;
+import droidkit.inject.OnLoadFinished;
 
 /**
  * @author Daniel Serdyukov
  */
-public class InjectActivity extends Activity {
+public class InjectActivity extends FragmentActivity {
+
+    public static final String LOADER_1_RESULT = "LOADER_1_RESULT";
 
     @InjectView(droidkit.test.R.id.fragment)
     FrameLayout mFrame;
@@ -38,10 +44,15 @@ public class InjectActivity extends Activity {
 
     private String mActionTest3Title;
 
+    private int mOnCreateLoaderId;
+
+    private String mOnLoadFinishedResult;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(droidkit.test.R.layout.ac_mock);
+        Loaders.init(getLoaderManager(), droidkit.test.R.id.mock_loader_1, null, this);
     }
 
     @Override
@@ -91,6 +102,14 @@ public class InjectActivity extends Activity {
         return mActionTest3Title;
     }
 
+    public int getOnCreateLoaderId() {
+        return mOnCreateLoaderId;
+    }
+
+    public String getOnLoadFinishedResult() {
+        return mOnLoadFinishedResult;
+    }
+
     @OnClick(android.R.id.button1)
     private void onButton1Click(@NonNull View view) {
         view.setOnLongClickListener(new View.OnLongClickListener() {
@@ -127,6 +146,18 @@ public class InjectActivity extends Activity {
     @OnActionClick(droidkit.test.R.id.action_test3)
     void onActionTest3Click(MenuItem item) {
         mActionTest3Title = item.getTitle().toString();
+    }
+
+    @OnCreateLoader(droidkit.test.R.id.mock_loader_1)
+    Loader<String> onCreateMockLoader() {
+        mOnCreateLoaderId = droidkit.test.R.id.mock_loader_1;
+        return new MockLoader(getApplicationContext(), LOADER_1_RESULT);
+    }
+
+    @OnLoadFinished(droidkit.test.R.id.mock_loader_1)
+    void onOnMockLoaderFinished(String data) {
+        mOnLoadFinishedResult = data;
+        Loaders.destroy(getLoaderManager(), droidkit.test.R.id.mock_loader_1);
     }
 
 }
