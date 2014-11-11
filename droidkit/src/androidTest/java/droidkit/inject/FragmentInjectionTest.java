@@ -12,6 +12,7 @@ import droidkit.inject.mock.InjectFragment;
 /**
  * @author Daniel Serdyukov
  */
+@Suppress
 public class FragmentInjectionTest extends ActivityInstrumentationTestCase2<InjectActivity> {
 
     private InjectFragment mFragment;
@@ -20,7 +21,6 @@ public class FragmentInjectionTest extends ActivityInstrumentationTestCase2<Inje
         super(InjectActivity.class);
     }
 
-    @Override
     public void setUp() throws Exception {
         super.setUp();
         mFragment = new InjectFragment();
@@ -31,7 +31,6 @@ public class FragmentInjectionTest extends ActivityInstrumentationTestCase2<Inje
         getInstrumentation().waitForIdleSync();
     }
 
-    @Suppress
     public void testOnButton1Click() throws Exception {
         TouchUtils.clickView(this, mFragment.getButton1());
         getInstrumentation().waitForIdleSync();
@@ -39,14 +38,12 @@ public class FragmentInjectionTest extends ActivityInstrumentationTestCase2<Inje
         Assert.assertEquals(mFragment.getButton1(), mFragment.getClickedView1());
     }
 
-    @Suppress
     public void testOnButton2Click() throws Exception {
         TouchUtils.clickView(this, mFragment.getButton2());
         getInstrumentation().waitForIdleSync();
         Assert.assertTrue(mFragment.isButton2Clicked());
     }
 
-    @Suppress
     public void testOnButton3Click() throws Exception {
         TouchUtils.clickView(this, mFragment.getButton3());
         getInstrumentation().waitForIdleSync();

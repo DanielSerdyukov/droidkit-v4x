@@ -27,7 +27,7 @@ public final class Sequence {
     }
 
     private static final class Holder {
-        public static final Sequence INSTANCE = new Sequence(0);
+        public static final Sequence INSTANCE = new Sequence(9000);
     }
 
 }

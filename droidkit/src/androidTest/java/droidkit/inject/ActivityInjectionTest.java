@@ -11,6 +11,7 @@ import droidkit.inject.mock.InjectActivity;
 /**
  * @author Daniel Serdyukov
  */
+@Suppress
 public class ActivityInjectionTest extends ActivityInstrumentationTestCase2<InjectActivity> {
 
     private InjectActivity mActivity;
@@ -26,7 +27,6 @@ public class ActivityInjectionTest extends ActivityInstrumentationTestCase2<Inje
         getInstrumentation().waitForIdleSync();
     }
 
-    @Suppress
     public void testOnClickButton1() throws Exception {
         TouchUtils.clickView(this, mActivity.getButton1());
         getInstrumentation().waitForIdleSync();
@@ -34,33 +34,28 @@ public class ActivityInjectionTest extends ActivityInstrumentationTestCase2<Inje
         Assert.assertEquals(mActivity.getButton1(), mActivity.getClickedView1());
     }
 
-    @Suppress
     public void testOnClickButton2() throws Exception {
         TouchUtils.clickView(this, mActivity.findViewById(android.R.id.button2));
         getInstrumentation().waitForIdleSync();
         Assert.assertTrue(mActivity.isButton2Clicked());
     }
 
-    @Suppress
     public void testOnClickButton3() throws Exception {
         TouchUtils.clickView(this, mActivity.findViewById(android.R.id.button3));
         getInstrumentation().waitForIdleSync();
         Assert.assertTrue(mActivity.isButton3Clicked());
     }
 
-    @Suppress
     public void testOnActionClickTest1() throws Exception {
         getInstrumentation().invokeMenuActionSync(mActivity, droidkit.test.R.id.action_test1, 0);
         Assert.assertTrue(mActivity.isActionTest1Clicked());
     }
 
-    @Suppress
     public void testOnActionClickTest2() throws Exception {
         getInstrumentation().invokeMenuActionSync(mActivity, droidkit.test.R.id.action_test2, 0);
         Assert.assertTrue(mActivity.isActionTest2Clicked());
     }
 
-    @Suppress
     public void testOnActionClickTest3() throws Exception {
         getInstrumentation().invokeMenuActionSync(mActivity, droidkit.test.R.id.action_test3, 0);
         Assert.assertEquals("test3", mActivity.getActionTest3Title());
