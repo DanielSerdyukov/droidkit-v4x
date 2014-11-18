@@ -1,4 +1,4 @@
-package droidkit.inject.internal;
+package droidkit.inject;
 
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;

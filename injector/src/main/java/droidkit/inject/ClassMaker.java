@@ -1,4 +1,4 @@
-package droidkit.inject.internal;
+package droidkit.inject;
 
 import java.io.IOException;
 

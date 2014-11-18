@@ -1,4 +1,4 @@
-package droidkit.inject.internal;
+package droidkit.inject;
 
 import com.squareup.javawriter.JavaWriter;
 import com.sun.tools.javac.code.Flags;
@@ -18,9 +18,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.tools.JavaFileObject;
 
-import droidkit.inject.OnCreateLoader;
-import droidkit.inject.OnLoadFinished;
-import droidkit.inject.OnResetLoader;
+import droidkit.annotation.OnCreateLoader;
+import droidkit.annotation.OnLoadFinished;
+import droidkit.annotation.OnResetLoader;
 
 /**
  * @author Daniel Serdyukov
@@ -48,17 +48,17 @@ public class LCMaker implements ClassMaker {
 
     @Override
     public void emit(Element element, TypeElement annotation) {
-        if (mTools.isSubtype(annotation, "droidkit.inject.OnCreateLoader")) {
+        if (mTools.isSubtype(annotation, "droidkit.annotation.OnCreateLoader")) {
             mTools.<JCTree.JCMethodDecl>getTree(element).mods.flags &= ~Flags.PRIVATE;
             for (final int loaderId : element.getAnnotation(OnCreateLoader.class).value()) {
                 mOnCreateLoader.put(loaderId, (ExecutableElement) element);
             }
-        } else if (mTools.isSubtype(annotation, "droidkit.inject.OnLoadFinished")) {
+        } else if (mTools.isSubtype(annotation, "droidkit.annotation.OnLoadFinished")) {
             mTools.<JCTree.JCMethodDecl>getTree(element).mods.flags &= ~Flags.PRIVATE;
             for (final int loaderId : element.getAnnotation(OnLoadFinished.class).value()) {
                 mOnLoadFinished.put(loaderId, (ExecutableElement) element);
             }
-        } else if (mTools.isSubtype(annotation, "droidkit.inject.OnResetLoader")) {
+        } else if (mTools.isSubtype(annotation, "droidkit.annotation.OnResetLoader")) {
             mTools.<JCTree.JCMethodDecl>getTree(element).mods.flags &= ~Flags.PRIVATE;
             for (final int loaderId : element.getAnnotation(OnResetLoader.class).value()) {
                 mOnResetLoader.put(loaderId, (ExecutableElement) element);

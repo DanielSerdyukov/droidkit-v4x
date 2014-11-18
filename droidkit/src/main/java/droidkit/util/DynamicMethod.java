@@ -18,7 +18,7 @@ public final class DynamicMethod {
     @Nullable
     public static <T> T invoke(@NonNull Object target, @NonNull String method, Object... args)
             throws DynamicException {
-        return invoke(target, findMethod(target.getClass(), method, types(args)), args);
+        return invoke(target, find(target.getClass(), method, types(args)), args);
     }
 
     @Nullable
@@ -45,7 +45,7 @@ public final class DynamicMethod {
     @Nullable
     public static <T> T invokeStatic(@NonNull Class<?> target, @NonNull String method, Object... args)
             throws DynamicException {
-        return invokeStatic(findMethod(target, method, types(args)), args);
+        return invokeStatic(find(target, method, types(args)), args);
     }
 
     @Nullable
@@ -55,13 +55,13 @@ public final class DynamicMethod {
     }
 
     @NonNull
-    public static Method findMethod(@NonNull String className, @NonNull String name, Class<?>... argTypes)
+    public static Method find(@NonNull String className, @NonNull String name, Class<?>... argTypes)
             throws DynamicException {
-        return findMethod(Dynamic.forName(className), name, argTypes);
+        return find(Dynamic.forName(className), name, argTypes);
     }
 
     @NonNull
-    public static Method findMethod(@NonNull Class<?> clazz, @NonNull String name, Class<?>... argTypes)
+    public static Method find(@NonNull Class<?> clazz, @NonNull String name, Class<?>... argTypes)
             throws DynamicException {
         do {
             final Method[] methods = clazz.getDeclaredMethods();

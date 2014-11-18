@@ -1,4 +1,4 @@
-package droidkit.inject;
+package droidkit.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 /**
  * @author Daniel Serdyukov
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.SOURCE)
-public @interface OnResetLoader {
+public @interface InjectView {
 
     int[] value();
 

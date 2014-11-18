@@ -1,4 +1,4 @@
-package droidkit.inject.internal;
+package droidkit.inject;
 
 import com.squareup.javawriter.JavaWriter;
 import com.sun.tools.javac.code.Flags;
@@ -21,9 +21,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.tools.JavaFileObject;
 
-import droidkit.inject.InjectView;
-import droidkit.inject.OnActionClick;
-import droidkit.inject.OnClick;
+import droidkit.annotation.InjectView;
+import droidkit.annotation.OnActionClick;
+import droidkit.annotation.OnClick;
 
 /**
  * @author Daniel Serdyukov

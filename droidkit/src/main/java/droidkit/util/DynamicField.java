@@ -16,7 +16,7 @@ public final class DynamicField {
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T> T get(@NonNull Object target, @NonNull String fieldName) throws DynamicException {
-        return get(target, findField(target.getClass(), fieldName));
+        return get(target, find(target.getClass(), fieldName));
     }
 
     @Nullable
@@ -36,13 +36,13 @@ public final class DynamicField {
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T> T getStatic(@NonNull Class<?> clazz, @NonNull String fieldName) throws DynamicException {
-        return get(null, findField(clazz, fieldName));
+        return get(null, find(clazz, fieldName));
     }
 
     @SuppressWarnings("unchecked")
     public static void set(@NonNull Object target, @NonNull String fieldName, @Nullable Object value)
             throws DynamicException {
-        set(target, findField(target.getClass(), fieldName), value);
+        set(target, find(target.getClass(), fieldName), value);
     }
 
     @SuppressWarnings("unchecked")
@@ -62,11 +62,11 @@ public final class DynamicField {
     @SuppressWarnings("unchecked")
     public static void setStatic(@NonNull Class<?> clazz, @NonNull String fieldName, @Nullable Object value)
             throws DynamicException {
-        set(null, findField(clazz, fieldName), value);
+        set(null, find(clazz, fieldName), value);
     }
 
     @NonNull
-    public static Field findField(@NonNull Class<?> clazz, @NonNull String name) throws DynamicException {
+    public static Field find(@NonNull Class<?> clazz, @NonNull String name) throws DynamicException {
         do {
             try {
                 return clazz.getDeclaredField(name);
@@ -77,8 +77,8 @@ public final class DynamicField {
     }
 
     @NonNull
-    public static Field findField(@NonNull String className, @NonNull String name) throws DynamicException {
-        return findField(Dynamic.forName(className), name);
+    public static Field find(@NonNull String className, @NonNull String name) throws DynamicException {
+        return find(Dynamic.forName(className), name);
     }
 
 }

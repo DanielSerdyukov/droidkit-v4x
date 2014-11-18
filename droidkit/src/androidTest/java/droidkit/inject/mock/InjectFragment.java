@@ -12,10 +12,10 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import droidkit.app.Loaders;
-import droidkit.inject.InjectView;
-import droidkit.inject.OnClick;
-import droidkit.inject.OnCreateLoader;
-import droidkit.inject.OnLoadFinished;
+import droidkit.annotation.InjectView;
+import droidkit.annotation.OnClick;
+import droidkit.annotation.OnCreateLoader;
+import droidkit.annotation.OnLoadFinished;
 
 /**
  * @author Daniel Serdyukov

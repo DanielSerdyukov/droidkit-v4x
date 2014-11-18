@@ -2,7 +2,6 @@ package droidkit.inject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
-import android.test.suitebuilder.annotation.Suppress;
 
 import junit.framework.Assert;
 
@@ -12,7 +11,6 @@ import droidkit.inject.mock.InjectFragment;
 /**
  * @author Daniel Serdyukov
  */
-@Suppress
 public class FragmentInjectionTest extends ActivityInstrumentationTestCase2<InjectActivity> {
 
     private InjectFragment mFragment;

@@ -3,7 +3,9 @@ package droidkit.util;
 import android.support.annotation.NonNull;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,6 +90,22 @@ public final class Dynamic {
             }
         }
         throw new DynamicException(new NoSuchMethodException("<init> " + Arrays.toString(argTypes)));
+    }
+
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <T> T newProxy(@NonNull InvocationHandler handler, @NonNull Class<T> proxyInterface) {
+        return (T) Proxy.newProxyInstance(proxyInterface.getClassLoader(), new Class<?>[]{proxyInterface}, handler);
+    }
+
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <T> T newProxy(@NonNull Object target, @NonNull Class<T> proxyInterface) {
+        return (T) Proxy.newProxyInstance(
+                proxyInterface.getClassLoader(),
+                new Class<?>[]{proxyInterface},
+                new ProxyInstance(target)
+        );
     }
 
 }

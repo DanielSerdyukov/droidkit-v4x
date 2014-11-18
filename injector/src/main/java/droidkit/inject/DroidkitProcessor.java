@@ -1,4 +1,4 @@
-package droidkit.inject.internal;
+package droidkit.inject;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -18,11 +18,11 @@ import javax.lang.model.element.TypeElement;
  * @author Daniel Serdyukov
  */
 @SupportedAnnotationTypes({
-        "droidkit.inject.InjectView",
-        "droidkit.inject.OnClick",
-        "droidkit.inject.OnActionClick",
-        "droidkit.inject.OnCreateLoader",
-        "droidkit.inject.OnLoadFinished"
+        "droidkit.annotation.InjectView",
+        "droidkit.annotation.OnClick",
+        "droidkit.annotation.OnActionClick",
+        "droidkit.annotation.OnCreateLoader",
+        "droidkit.annotation.OnLoadFinished"
 })
 public class DroidkitProcessor extends AbstractProcessor {
 
@@ -97,8 +97,8 @@ public class DroidkitProcessor extends AbstractProcessor {
 
     private ClassMaker getOrCreateLcMaker(Element enclosingElement, TypeElement annotation) {
         ClassMaker maker = mLcMakers.get(enclosingElement);
-        if (maker == null && (mTools.isSubtype(annotation, "droidkit.inject.OnCreateLoader")
-                || mTools.isSubtype(annotation, "droidkit.inject.OnLoadFinished"))) {
+        if (maker == null && (mTools.isSubtype(annotation, "droidkit.annotation.OnCreateLoader")
+                || mTools.isSubtype(annotation, "droidkit.annotation.OnLoadFinished"))) {
             maker = new LCMaker(mTools, enclosingElement);
             mLcMakers.put(enclosingElement, maker);
         }
