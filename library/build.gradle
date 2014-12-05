@@ -7,19 +7,61 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        versionCode 401001
+        versionName "4.1.1"
+        testApplicationId "droidkit.test"
+        testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    libraryVariants.all { variant ->
+        def flavorName = variant.flavorName
+        def buildType = variant.buildType.name
+        variant.assemble << {
+            copy {
+                from("${project.buildDir}/intermediates/classes/${flavorName}/${buildType}")
+                into("${project.buildDir}/outputs/classes")
+            }
         }
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:21.0.2'
+    compile 'com.android.support:support-v13:21.0.+'
+    androidTestCompile 'com.jakewharton.espresso:espresso:1.+'
+}
+
+apply plugin: 'sonar-runner'
+
+sonarRunner {
+    sonarProperties {
+        property 'sonar.projectKey', 'droidkit'
+        property 'sonar.projectName', 'DroidKit'
+        property 'sonar.projectVersion', "${android.defaultConfig.versionName}"
+        property 'sonar.sources', 'src/main/java'
+        property 'sonar.binaries', 'build/outputs/classes'
+
+        property 'sonar.host.url', "${project.properties['sonar.host.url']}"
+        property 'sonar.login', "${project.properties['sonar.login']}"
+        property 'sonar.password', "${project.properties['sonar.password']}"
+        property 'sonar.jdbc.url', "${project.properties['sonar.jdbc.url']}"
+        property 'sonar.jdbc.driverClassName', "${project.properties['sonar.jdbc.driverClassName']}"
+        property 'sonar.jdbc.username', "${project.properties['sonar.jdbc.username']}"
+        property 'sonar.jdbc.password', "${project.properties['sonar.jdbc.password']}"
+    }
 }
