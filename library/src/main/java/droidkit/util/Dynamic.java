@@ -29,12 +29,14 @@ public final class Dynamic {
         BOXING.put(Void.TYPE, Void.TYPE);
     }
 
+    private static final int CALLER_DEPTH = 2;
+
     private Dynamic() {
     }
 
     @NonNull
     public static StackTraceElement getCaller() {
-        return new Throwable().fillInStackTrace().getStackTrace()[2];
+        return new Throwable().fillInStackTrace().getStackTrace()[CALLER_DEPTH];
     }
 
     @NonNull
