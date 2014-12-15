@@ -34,7 +34,9 @@ public final class IOUtils {
 
     public static void closeQuietly(@NonNull Cursor... cursors) {
         for (final Cursor cursor : cursors) {
-            cursor.close();
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
         }
     }
 

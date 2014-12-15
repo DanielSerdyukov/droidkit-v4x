@@ -5,153 +5,200 @@ import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.OperationApplicationException;
+import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Daniel Serdyukov
  */
-public abstract class SQLiteProvider extends ContentProvider {
+public class SQLiteProvider extends ContentProvider {
 
-    protected static final int MATCH_ALL = 0;
+    public static final String SCHEME = "content";
 
-    protected static final int MATCH_ID = 1;
+    public static final String DATABASE = "application.db";
 
-    private SQLiteOpenHelper mHelper;
+    public static final String WHERE_ID_EQ = BaseColumns._ID + " = ?";
 
-    protected static int matchUri(@NonNull Uri uri) {
+    static final String GROUP_BY = "groupBy";
+
+    static final String HAVING = "having";
+
+    static final String LIMIT = "limit";
+
+    private static final int URI_MATCH_ALL = 1;
+
+    private static final int URI_MATCH_ID = 2;
+
+    private static final int DATABASE_VERSION = 1;
+
+    private static final String HELPER_DELEGATE = "droidkit.sqlite.SQLite$Delegate";
+
+    private static final String MIME_DIR = "vnd.android.cursor.dir/";
+
+    private static final String MIME_ITEM = "vnd.android.cursor.item/";
+
+    private static final Map<Uri, String> TABLE_NAMES = new ConcurrentHashMap<>();
+
+    private static final Map<Uri, Uri> BASE_URIS = new ConcurrentHashMap<>();
+
+    private SQLiteDelegate mHelperDelegate;
+
+    private SQLiteHelper mHelper;
+
+    private static int matchUri(@NonNull Uri uri) {
         final List<String> pathSegments = uri.getPathSegments();
         final int pathSegmentsSize = pathSegments.size();
         if (pathSegmentsSize == 1) {
-            return MATCH_ALL;
-        } else if (pathSegmentsSize == 2 && TextUtils.isDigitsOnly(pathSegments.get(1))) {
-            return MATCH_ID;
+            return URI_MATCH_ALL;
+        } else if (pathSegmentsSize == 2 &&
+                TextUtils.isDigitsOnly(pathSegments.get(1))) {
+            return URI_MATCH_ID;
         }
         throw new SQLiteException("Unknown uri '" + uri + "'");
     }
 
     @Override
+    public void attachInfo(Context context, ProviderInfo info) {
+        super.attachInfo(context, info);
+        SQLite.attach(info.name, info.authority);
+    }
+
+    @Override
     public boolean onCreate() {
-        onRegisterTypes();
-        mHelper = onCreateHelper();
-        return false;
-    }
-
-    @Override
-    public Cursor query(Uri uri, String[] columns, String where, String[] whereArgs, String orderBy) {
-        final int match = matchUri(uri);
-        final String table = uri.getPathSegments().get(0);
-        final SQLiteDatabase db = mHelper.getReadableDatabase();
-        if (MATCH_ID == match) {
-            final Cursor cursor = db.query(table, columns, BaseColumns._ID + "=?",
-                    new String[]{uri.getLastPathSegment()}, null, null, orderBy);
-            cursor.setNotificationUri(getContext().getContentResolver(), new Uri.Builder()
-                    .scheme(uri.getScheme()).authority(uri.getAuthority()).path(table).build());
-            return cursor;
-        } else {
-            final Cursor cursor = db.query(table, columns, where, whereArgs, null, null, orderBy);
-            cursor.setNotificationUri(getContext().getContentResolver(), uri);
-            return cursor;
+        try {
+            final Class<?> type = Class.forName(HELPER_DELEGATE);
+            mHelperDelegate = (SQLiteDelegate) type.newInstance();
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+            throw new RuntimeException(e);
         }
+        mHelper = new SQLiteHelper(getContext(), getDatabaseName(), getDatabaseVersion());
+        return true;
     }
 
     @Override
-    public String getType(Uri uri) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Cursor query(@NonNull Uri uri, @Nullable String[] columns, @Nullable String where,
+                        @Nullable String[] whereArgs, @Nullable String orderBy) {
         final int match = matchUri(uri);
-        final String table = uri.getPathSegments().get(0);
-        if (MATCH_ID == match) {
-            update(uri, values, null, null);
+        final String tableName = getTableName(uri);
+        final SQLiteDatabase db = mHelper.getReadableDatabase();
+        final Cursor cursor;
+        if (match == URI_MATCH_ID) {
+            cursor = db.query(tableName, columns, BaseColumns._ID + "=?",
+                    new String[]{uri.getLastPathSegment()}, null, null, orderBy);
+        } else {
+            cursor = db.query(tableName, columns, where, whereArgs, uri.getQueryParameter(GROUP_BY),
+                    uri.getQueryParameter(HAVING), orderBy, uri.getQueryParameter(LIMIT));
+        }
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return cursor;
+    }
+
+    @Override
+    public String getType(@NonNull Uri uri) {
+        if (matchUri(uri) == URI_MATCH_ID) {
+            return MIME_ITEM + getTableName(uri);
+        }
+        return MIME_DIR + getTableName(uri);
+    }
+
+    @Override
+    public Uri insert(@NonNull Uri uri, @NonNull ContentValues values) {
+        final SQLiteDatabase db = mHelper.getWritableDatabase();
+        if (db.inTransaction()) {
+            db.insert(getTableName(uri), BaseColumns._ID, values);
+            return uri;
+        }
+        final int match = matchUri(uri);
+        final long rowId = db.insert(getTableName(uri), BaseColumns._ID, values);
+        if (match == URI_MATCH_ID) {
+            onInsert(getBaseUri(uri), rowId);
             return uri;
         } else {
-            final long rowid = mHelper.getWritableDatabase().insert(table, BaseColumns._ID, values);
-            onInsert(uri, rowid);
-            return ContentUris.withAppendedId(uri, rowid);
+            onInsert(uri, rowId);
+            return ContentUris.withAppendedId(uri, rowId);
         }
     }
 
     @Override
-    public int delete(Uri uri, String where, String[] whereArgs) {
-        final int match = matchUri(uri);
-        final String table = uri.getPathSegments().get(0);
+    public int delete(@NonNull Uri uri, @Nullable String where, @Nullable String[] whereArgs) {
+        final String tableName = getTableName(uri);
         final SQLiteDatabase db = mHelper.getWritableDatabase();
-        if (MATCH_ID == match) {
-            final int affectedRows = db.delete(table, BaseColumns._ID + "=?",
-                    new String[]{uri.getLastPathSegment()});
-            if (affectedRows > 0) {
-                onDelete(new Uri.Builder().scheme(uri.getScheme()).authority(uri.getAuthority())
-                        .path(table).build(), affectedRows);
-            }
-            return affectedRows;
-        } else {
-            final int affectedRows = db.delete(table, where, whereArgs);
-            if (affectedRows > 0) {
-                onDelete(uri, affectedRows);
-            }
-            return affectedRows;
+        if (db.inTransaction()) {
+            return db.delete(tableName, where, whereArgs);
         }
+        final int match = matchUri(uri);
+        final int affectedRows;
+        final Uri baseUri;
+        if (match == URI_MATCH_ID) {
+            baseUri = getBaseUri(uri);
+            affectedRows = db.delete(tableName, WHERE_ID_EQ, new String[]{uri.getLastPathSegment()});
+        } else {
+            baseUri = uri;
+            affectedRows = db.delete(tableName, where, whereArgs);
+        }
+        if (affectedRows > 0) {
+            onDelete(baseUri, affectedRows);
+        }
+        return affectedRows;
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String where, String[] whereArgs) {
-        final int match = matchUri(uri);
-        final String table = uri.getPathSegments().get(0);
+    public int update(@NonNull Uri uri, @NonNull ContentValues values, @Nullable String where,
+                      @Nullable String[] whereArgs) {
+        final String tableName = getTableName(uri);
         final SQLiteDatabase db = mHelper.getWritableDatabase();
-        if (MATCH_ID == match) {
-            final int affectedRows = db.update(table, values, BaseColumns._ID + "=?",
-                    new String[]{uri.getLastPathSegment()});
-            if (affectedRows > 0) {
-                onUpdate(new Uri.Builder().scheme(uri.getScheme()).authority(uri.getAuthority())
-                        .path(table).build(), affectedRows);
-            }
-            return affectedRows;
-        } else {
-            final int affectedRows = db.update(table, values, where, whereArgs);
-            if (affectedRows > 0) {
-                onUpdate(uri, affectedRows);
-            }
-            return affectedRows;
+        if (db.inTransaction()) {
+            return db.update(tableName, values, where, whereArgs);
         }
+        final int match = matchUri(uri);
+        final int affectedRows;
+        final Uri baseUri;
+        if (match == URI_MATCH_ID) {
+            baseUri = getBaseUri(uri);
+            affectedRows = db.update(tableName, values, WHERE_ID_EQ, new String[]{uri.getLastPathSegment()});
+        } else {
+            baseUri = uri;
+            affectedRows = db.update(tableName, values, where, whereArgs);
+        }
+        if (affectedRows > 0) {
+            onDelete(baseUri, affectedRows);
+        }
+        return affectedRows;
     }
 
     @Override
-    public int bulkInsert(Uri uri, @NonNull ContentValues[] bulkValues) {
-        final int match = matchUri(uri);
-        if (match == MATCH_ID && bulkValues.length > 0) {
-            return update(uri, bulkValues[0], null, null);
-        } else if (match == MATCH_ALL) {
-            int affectedRows = 0;
-            final String table = uri.getPathSegments().get(0);
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        if (matchUri(uri) == URI_MATCH_ALL) {
             final SQLiteDatabase db = mHelper.getWritableDatabase();
             db.beginTransactionNonExclusive();
             try {
-                for (final ContentValues value : bulkValues) {
-                    mHelper.getWritableDatabase().insert(table, BaseColumns._ID, value);
-                    ++affectedRows;
-                }
+                final int insertedRows = super.bulkInsert(uri, values);
                 db.setTransactionSuccessful();
+                if (insertedRows > 0) {
+                    onChange(uri, insertedRows);
+                }
+                return insertedRows;
             } finally {
                 db.endTransaction();
             }
-            if (affectedRows > 0) {
-                onUpdate(uri, affectedRows);
-            }
-            return affectedRows;
         }
-        return 0;
+        throw new SQLiteException("Unable to bulkInsert into " + uri);
     }
 
     @Override
@@ -160,37 +207,110 @@ public abstract class SQLiteProvider extends ContentProvider {
         final SQLiteDatabase db = mHelper.getWritableDatabase();
         db.beginTransactionNonExclusive();
         try {
-            ContentProviderResult[] results = super.applyBatch(operations);
+            final int opSize = operations.size();
+            final ContentProviderResult[] results = new ContentProviderResult[opSize];
+            final Set<Uri> notifyUris = new HashSet<>(opSize);
+            for (int i = 0; i < opSize; ++i) {
+                final ContentProviderResult result = operations.get(i).apply(this, results, i);
+                if (matchUri(result.uri) == URI_MATCH_ID) {
+                    notifyUris.add(getBaseUri(result.uri));
+                } else {
+                    notifyUris.add(result.uri);
+                }
+            }
             db.setTransactionSuccessful();
+            for (final Uri baseUri : notifyUris) {
+                onChange(baseUri, opSize);
+            }
             return results;
         } finally {
             db.endTransaction();
         }
     }
 
-    protected abstract void onRegisterTypes();
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        SQLite.onTrimMemory();
+    }
+
+    @Nullable
+    protected String getDatabaseName() {
+        return DATABASE;
+    }
+
+    protected int getDatabaseVersion() {
+        return DATABASE_VERSION;
+    }
+
+    protected void onCreateDatabase(@NonNull SQLiteDatabase db) {
+        mHelperDelegate.onCreate(db);
+    }
+
+    protected void onUpgradeDatabase(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+        mHelperDelegate.onUpgrade(db, oldVersion, newVersion);
+    }
+
+    @SuppressWarnings("unused")
+    protected void onChange(@NonNull Uri baseUri, int affectedRows) {
+        getContext().getContentResolver().notifyChange(baseUri, null, false);
+    }
+
+    @SuppressWarnings("unused")
+    protected void onInsert(@NonNull Uri baseUri, long rowid) {
+        onChange(baseUri, 1);
+    }
+
+    @SuppressWarnings("unused")
+    protected void onUpdate(@NonNull Uri baseUri, int affectedRows) {
+        onChange(baseUri, affectedRows);
+    }
+
+    @SuppressWarnings("unused")
+    protected void onDelete(@NonNull Uri baseUri, int affectedRows) {
+        onChange(baseUri, affectedRows);
+    }
 
     @NonNull
-    protected abstract SQLiteHelper onCreateHelper();
-
-    protected void registerType(@NonNull String authority, @NonNull Class<?> type) {
-        SQLite.registerType(authority, type);
+    private String getTableName(@NonNull Uri uri) {
+        String tableName = TABLE_NAMES.get(uri);
+        if (tableName == null) {
+            tableName = uri.getPathSegments().get(0);
+            TABLE_NAMES.put(uri, tableName);
+        }
+        return tableName;
     }
 
-    protected void onChange(@NonNull Uri baseUri) {
-        getContext().getContentResolver().notifyChange(baseUri, null);
+    @NonNull
+    private Uri getBaseUri(@NonNull Uri uri) {
+        Uri baseUri = BASE_URIS.get(uri);
+        if (baseUri == null) {
+            baseUri = new Uri.Builder()
+                    .scheme(uri.getScheme())
+                    .authority(uri.getAuthority())
+                    .appendPath(getTableName(uri))
+                    .build();
+            BASE_URIS.put(uri, baseUri);
+        }
+        return baseUri;
     }
 
-    protected void onInsert(@NonNull Uri baseUri, long rowid) {
-        onChange(baseUri);
-    }
+    private final class SQLiteHelper extends SQLiteOpenHelper {
 
-    protected void onUpdate(@NonNull Uri baseUri, int affectedRows) {
-        onChange(baseUri);
-    }
+        public SQLiteHelper(Context context, String name, int version) {
+            super(context, name, null, version);
+        }
 
-    protected void onDelete(@NonNull Uri baseUri, int affectedRows) {
-        onChange(baseUri);
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            SQLiteProvider.this.onCreateDatabase(db);
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            SQLiteProvider.this.onUpgradeDatabase(db, oldVersion, newVersion);
+        }
+
     }
 
 }
