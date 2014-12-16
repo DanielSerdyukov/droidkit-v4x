@@ -25,6 +25,8 @@ public interface SQLiteQuery<T> {
 
     String LT = " < ?";
 
+    String GT = " > ?";
+
     @NonNull
     SQLiteQuery<T> groupBy(@NonNull String column);
 
@@ -63,6 +65,15 @@ public interface SQLiteQuery<T> {
 
     @NonNull
     SQLiteQuery<T> lessThan(@NonNull String column, @NonNull String value);
+
+    @NonNull
+    SQLiteQuery<T> greaterThan(@NonNull String column, long value);
+
+    @NonNull
+    SQLiteQuery<T> greaterThan(@NonNull String column, double value);
+
+    @NonNull
+    SQLiteQuery<T> greaterThan(@NonNull String column, @NonNull String value);
 
     @NonNull
     SQLiteQuery<T> and();

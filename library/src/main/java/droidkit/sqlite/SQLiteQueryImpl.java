@@ -123,6 +123,26 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     @NonNull
     @Override
+    public SQLiteQuery<T> greaterThan(@NonNull String column, long value) {
+        return greaterThan(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> greaterThan(@NonNull String column, double value) {
+        return greaterThan(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> greaterThan(@NonNull String column, @NonNull String value) {
+        mWhere.add(column + GT);
+        mWhereArgs.add(value);
+        return this;
+    }
+
+    @NonNull
+    @Override
     public SQLiteQuery<T> and() {
         mWhere.add(AND);
         return this;

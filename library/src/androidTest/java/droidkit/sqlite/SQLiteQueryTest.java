@@ -114,4 +114,18 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
+    public void testGreaterThan() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
+                .greaterThan("age", 5)
+                .all();
+        final long[] ids = new long[]{7, 8, 9, 10};
+        Assert.assertEquals(ids.length, users.size());
+        for (int i = 0; i < ids.length; ++i) {
+            final SQLiteUser user = users.get(i);
+            Assert.assertNotNull(user);
+            Assert.assertEquals(ids[i], user.getId());
+        }
+    }
+
 }
