@@ -17,8 +17,6 @@ import droidkit.test.BuildConfig;
  */
 public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
 
-    private static final String TAG = "SQLiteTest";
-
     private SQLite mSQLite;
 
     public SQLiteTest() {
@@ -26,7 +24,7 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
         SQLite.attach(BuildConfig.APPLICATION_ID, BuildConfig.APPLICATION_ID);
     }
 
-    private static void assertSQLiteUser(@NonNull Cursor cursor, @NonNull String name, int age) {
+    static void assertSQLiteUser(@NonNull Cursor cursor, @NonNull String name, int age) {
         try {
             Assert.assertTrue(cursor.moveToFirst());
             Assert.assertEquals(name, CursorUtils.getString(cursor, "name"));
@@ -36,7 +34,7 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
-    private static void insert10Users(@NonNull SQLite sqlite) {
+    static void insert10Users(@NonNull SQLite sqlite) {
         sqlite.beginTransaction();
         for (int i = 0; i < 10; ++i) {
             SQLiteUser user = new SQLiteUser();
@@ -90,39 +88,6 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
             }
         } finally {
             IOUtils.closeQuietly(cursor);
-        }
-    }
-
-    public void testQueryAll() throws Exception {
-        insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class).all();
-        try {
-            Assert.assertEquals(10, users.size());
-            Assert.assertEquals(4, users.get(4).getAge());
-        } finally {
-            IOUtils.closeQuietly(users);
-        }
-    }
-
-    public void testQueryWithOrder() throws Exception {
-        insert10Users(mSQLite);
-        SQLiteUser user = mSQLite.where(SQLiteUser.class).orderBy("age", false).first();
-        Assert.assertNotNull(user);
-        Assert.assertEquals(9, user.getAge());
-        user = mSQLite.where(SQLiteUser.class).orderBy("age", false).last();
-        Assert.assertNotNull(user);
-        Assert.assertEquals(0, user.getAge());
-    }
-
-    public void testQueryWithLimit() throws Exception {
-        insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .limit(3)
-                .all();
-        try {
-            Assert.assertEquals(3, users.size());
-        } finally {
-            IOUtils.closeQuietly(users);
         }
     }
 

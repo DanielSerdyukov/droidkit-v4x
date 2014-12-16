@@ -21,6 +21,8 @@ public interface SQLiteQuery<T> {
 
     String COMMA = ", ";
 
+    String EQ = " = ?";
+
     @NonNull
     SQLiteQuery<T> groupBy(@NonNull String column);
 
@@ -40,13 +42,22 @@ public interface SQLiteQuery<T> {
     SQLiteQuery<T> beginWhereGroup();
 
     @NonNull
-    SQLiteQuery<T> endWhereGroup();
+    SQLiteQuery<T> endWhereGroup();*/
+
+    @NonNull
+    SQLiteQuery<T> equalTo(@NonNull String column, long value);
+
+    @NonNull
+    SQLiteQuery<T> equalTo(@NonNull String column, double value);
+
+    @NonNull
+    SQLiteQuery<T> equalTo(@NonNull String column, @NonNull String value);
 
     @NonNull
     SQLiteQuery<T> and();
 
     @NonNull
-    SQLiteQuery<T> or();*/
+    SQLiteQuery<T> or();
 
     @NonNull
     SQLiteResult<T> all();

@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import droidkit.content.StringValue;
 import droidkit.io.IOUtils;
 
 /**
@@ -24,6 +25,10 @@ class SQLiteBaseQuery<T> implements SQLiteQuery<T> {
     private final SQLiteTable<T> mTable;
 
     private final List<String> mOrderBy = new ArrayList<>();
+
+    private final List<String> mWhere = new ArrayList<>();
+
+    private final List<String> mWhereArgs = new ArrayList<>();
 
     private String mGroupBy;
 
@@ -78,8 +83,43 @@ class SQLiteBaseQuery<T> implements SQLiteQuery<T> {
 
     @NonNull
     @Override
+    public SQLiteQuery<T> equalTo(@NonNull String column, long value) {
+        return equalTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> equalTo(@NonNull String column, double value) {
+        return equalTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> equalTo(@NonNull String column, @NonNull String value) {
+        mWhere.add(column + EQ);
+        mWhereArgs.add(value);
+        return this;
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> and() {
+        mWhere.add(AND);
+        return this;
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> or() {
+        mWhere.add(OR);
+        return this;
+    }
+
+    @NonNull
+    @Override
     public SQLiteResult<T> all() {
-        final Cursor cursor = mDb.query(makeQueryUri(), ROWID_COLUMNS, null, null, TextUtils.join(COMMA, mOrderBy));
+        final Cursor cursor = mDb.query(makeQueryUri(), ROWID_COLUMNS, makeWhere(), makeWhereArgs(),
+                TextUtils.join(COMMA, mOrderBy));
         if (cursor.moveToFirst()) {
             return new SQLiteBaseResult<>(mDb, mUri, mTable, cursor);
         }
@@ -132,6 +172,22 @@ class SQLiteBaseQuery<T> implements SQLiteQuery<T> {
             uri = builder.build();
         }
         return uri;
+    }
+
+    @Nullable
+    private String makeWhere() {
+        if (!mWhere.isEmpty()) {
+            return TextUtils.join(StringValue.EMPTY, mWhere);
+        }
+        return null;
+    }
+
+    @Nullable
+    private String[] makeWhereArgs() {
+        if (!mWhereArgs.isEmpty()) {
+            return mWhereArgs.toArray(new String[mWhereArgs.size()]);
+        }
+        return null;
     }
 
 }
