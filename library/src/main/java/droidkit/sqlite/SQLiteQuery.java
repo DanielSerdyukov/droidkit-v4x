@@ -25,7 +25,11 @@ public interface SQLiteQuery<T> {
 
     String LT = " < ?";
 
+    String LT_OR_EQ = " <= ?";
+
     String GT = " > ?";
+
+    String GT_OR_EQ = " >= ?";
 
     @NonNull
     SQLiteQuery<T> groupBy(@NonNull String column);
@@ -67,6 +71,15 @@ public interface SQLiteQuery<T> {
     SQLiteQuery<T> lessThan(@NonNull String column, @NonNull String value);
 
     @NonNull
+    SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, long value);
+
+    @NonNull
+    SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, double value);
+
+    @NonNull
+    SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, @NonNull String value);
+
+    @NonNull
     SQLiteQuery<T> greaterThan(@NonNull String column, long value);
 
     @NonNull
@@ -74,6 +87,15 @@ public interface SQLiteQuery<T> {
 
     @NonNull
     SQLiteQuery<T> greaterThan(@NonNull String column, @NonNull String value);
+
+    @NonNull
+    SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, long value);
+
+    @NonNull
+    SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, double value);
+
+    @NonNull
+    SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, @NonNull String value);
 
     @NonNull
     SQLiteQuery<T> and();

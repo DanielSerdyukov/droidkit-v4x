@@ -123,6 +123,26 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     @NonNull
     @Override
+    public SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, long value) {
+        return lessThanOrEqualTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, double value) {
+        return lessThanOrEqualTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, @NonNull String value) {
+        mWhere.add(column + LT_OR_EQ);
+        mWhereArgs.add(value);
+        return this;
+    }
+
+    @NonNull
+    @Override
     public SQLiteQuery<T> greaterThan(@NonNull String column, long value) {
         return greaterThan(column, String.valueOf(value));
     }
@@ -137,6 +157,26 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
     @Override
     public SQLiteQuery<T> greaterThan(@NonNull String column, @NonNull String value) {
         mWhere.add(column + GT);
+        mWhereArgs.add(value);
+        return this;
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, long value) {
+        return greaterThanOrEqualTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, double value) {
+        return greaterThanOrEqualTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, @NonNull String value) {
+        mWhere.add(column + GT_OR_EQ);
         mWhereArgs.add(value);
         return this;
     }

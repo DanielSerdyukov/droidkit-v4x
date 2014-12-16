@@ -114,12 +114,40 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
+    public void testLessThanOrEqualTo() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
+                .lessThanOrEqualTo("age", 5)
+                .all();
+        final long[] ids = new long[]{1, 2, 3, 4, 5, 6};
+        Assert.assertEquals(ids.length, users.size());
+        for (int i = 0; i < ids.length; ++i) {
+            final SQLiteUser user = users.get(i);
+            Assert.assertNotNull(user);
+            Assert.assertEquals(ids[i], user.getId());
+        }
+    }
+
     public void testGreaterThan() throws Exception {
         SQLiteTest.insert10Users(mSQLite);
         final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
                 .greaterThan("age", 5)
                 .all();
         final long[] ids = new long[]{7, 8, 9, 10};
+        Assert.assertEquals(ids.length, users.size());
+        for (int i = 0; i < ids.length; ++i) {
+            final SQLiteUser user = users.get(i);
+            Assert.assertNotNull(user);
+            Assert.assertEquals(ids[i], user.getId());
+        }
+    }
+
+    public void testGreaterThanOrEqualTo() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
+                .greaterThanOrEqualTo("age", 5)
+                .all();
+        final long[] ids = new long[]{6, 7, 8, 9, 10};
         Assert.assertEquals(ids.length, users.size());
         for (int i = 0; i < ids.length; ++i) {
             final SQLiteUser user = users.get(i);
