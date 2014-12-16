@@ -11,7 +11,7 @@ import java.util.ArrayList;
 /**
  * @author Daniel Serdyukov
  */
-class SQLiteBaseImpl extends SQLite {
+class SQLiteImpl extends SQLite {
 
     private static final int TRANSACTION_CAPACITY = 1024;
 
@@ -21,7 +21,7 @@ class SQLiteBaseImpl extends SQLite {
 
     private ArrayList<ContentProviderOperation> mOperations;
 
-    SQLiteBaseImpl(@NonNull ContentResolver db, @NonNull String authority) {
+    SQLiteImpl(@NonNull ContentResolver db, @NonNull String authority) {
         mDb = db;
         mAuthority = authority;
     }
@@ -85,7 +85,7 @@ class SQLiteBaseImpl extends SQLite {
     @NonNull
     @Override
     public <T> SQLiteQuery<T> where(@NonNull Class<T> type) {
-        return new SQLiteBaseQuery<>(mDb, getUri(type), SQLite.<T>getTable(type));
+        return new SQLiteQueryImpl<>(mDb, getUri(type), SQLite.<T>getTable(type));
     }
 
 }

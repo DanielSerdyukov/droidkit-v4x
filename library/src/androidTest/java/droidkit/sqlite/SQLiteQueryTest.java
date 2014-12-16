@@ -37,7 +37,7 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
-    public void testQueryWithOrder() throws Exception {
+    public void testOrderBy() throws Exception {
         SQLiteTest.insert10Users(mSQLite);
         SQLiteUser user = mSQLite.where(SQLiteUser.class).orderBy("age", false).first();
         Assert.assertNotNull(user);
@@ -47,7 +47,7 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertEquals(0, user.getAge());
     }
 
-    public void testQueryWithLimit() throws Exception {
+    public void testLimit() throws Exception {
         SQLiteTest.insert10Users(mSQLite);
         final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
                 .limit(3)
@@ -59,7 +59,7 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
-    public void testQueryWithEqual() throws Exception {
+    public void testEqual() throws Exception {
         SQLiteTest.insert10Users(mSQLite);
         final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
                 .equalTo("name", "User #3")
@@ -70,7 +70,7 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertEquals("User #3", user.getName());
     }
 
-    public void testQueryWithEqualAnd() throws Exception {
+    public void testEqualAndEqual() throws Exception {
         SQLiteTest.insert10Users(mSQLite);
         final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
                 .equalTo("name", "User #3")
@@ -84,7 +84,7 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertEquals(3, user.getAge());
     }
 
-    public void testQueryWithEqualOr() throws Exception {
+    public void testEqualOrEqual() throws Exception {
         SQLiteTest.insert10Users(mSQLite);
         final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
                 .equalTo("name", "User #3")
@@ -98,6 +98,20 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         user = users.get(1);
         Assert.assertNotNull(user);
         Assert.assertEquals("User #4", user.getName());
+    }
+
+    public void testLessThan() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
+                .lessThan("age", 5)
+                .all();
+        final long[] ids = new long[]{1, 2, 3, 4, 5};
+        Assert.assertEquals(ids.length, users.size());
+        for (int i = 0; i < ids.length; ++i) {
+            final SQLiteUser user = users.get(i);
+            Assert.assertNotNull(user);
+            Assert.assertEquals(ids[i], user.getId());
+        }
     }
 
 }

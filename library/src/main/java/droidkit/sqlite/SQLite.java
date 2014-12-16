@@ -22,7 +22,7 @@ public abstract class SQLite {
     private static final Map<Class<?>, Uri> URIS = new ConcurrentHashMap<>();
 
     public static SQLite with(@NonNull Context context) {
-        return new SQLiteBaseImpl(context.getContentResolver(), AUTHORITY_REF.get());
+        return new SQLiteImpl(context.getContentResolver(), AUTHORITY_REF.get());
     }
 
     @SuppressWarnings("unused")

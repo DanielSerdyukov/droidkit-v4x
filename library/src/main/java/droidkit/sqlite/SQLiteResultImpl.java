@@ -11,7 +11,7 @@ import droidkit.io.IOUtils;
 /**
  * @author Daniel Serdyukov
  */
-class SQLiteBaseResult<T> extends SQLiteEmptyResult<T> {
+class SQLiteResultImpl<T> extends SQLiteEmptyResult<T> {
 
     private final ContentResolver mDb;
 
@@ -23,7 +23,7 @@ class SQLiteBaseResult<T> extends SQLiteEmptyResult<T> {
 
     private final int mRowIdColumnIndex;
 
-    SQLiteBaseResult(@NonNull ContentResolver db, @NonNull Uri uri, @NonNull SQLiteTable<T> table,
+    SQLiteResultImpl(@NonNull ContentResolver db, @NonNull Uri uri, @NonNull SQLiteTable<T> table,
                      @NonNull Cursor rowIds) {
         mDb = db;
         mUri = uri;

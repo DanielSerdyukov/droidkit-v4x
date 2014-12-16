@@ -16,7 +16,7 @@ import droidkit.io.IOUtils;
 /**
  * @author Daniel Serdyukov
  */
-class SQLiteBaseQuery<T> implements SQLiteQuery<T> {
+class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     private final ContentResolver mDb;
 
@@ -38,7 +38,7 @@ class SQLiteBaseQuery<T> implements SQLiteQuery<T> {
 
     private boolean mHasGroupBayOrHavingOrLimit;
 
-    SQLiteBaseQuery(@NonNull ContentResolver db, @NonNull Uri uri, @NonNull SQLiteTable<T> table) {
+    SQLiteQueryImpl(@NonNull ContentResolver db, @NonNull Uri uri, @NonNull SQLiteTable<T> table) {
         mDb = db;
         mUri = uri;
         mTable = table;
@@ -103,6 +103,26 @@ class SQLiteBaseQuery<T> implements SQLiteQuery<T> {
 
     @NonNull
     @Override
+    public SQLiteQuery<T> lessThan(@NonNull String column, long value) {
+        return lessThan(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> lessThan(@NonNull String column, double value) {
+        return lessThan(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> lessThan(@NonNull String column, @NonNull String value) {
+        mWhere.add(column + LT);
+        mWhereArgs.add(value);
+        return this;
+    }
+
+    @NonNull
+    @Override
     public SQLiteQuery<T> and() {
         mWhere.add(AND);
         return this;
@@ -121,7 +141,7 @@ class SQLiteBaseQuery<T> implements SQLiteQuery<T> {
         final Cursor cursor = mDb.query(makeQueryUri(), ROWID_COLUMNS, makeWhere(), makeWhereArgs(),
                 TextUtils.join(COMMA, mOrderBy));
         if (cursor.moveToFirst()) {
-            return new SQLiteBaseResult<>(mDb, mUri, mTable, cursor);
+            return new SQLiteResultImpl<>(mDb, mUri, mTable, cursor);
         }
         IOUtils.closeQuietly(cursor);
         return new SQLiteEmptyResult<>();
