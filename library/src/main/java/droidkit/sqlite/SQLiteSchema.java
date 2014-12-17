@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 /**
  * @author Daniel Serdyukov
  */
-interface SQLiteDelegate {
+interface SQLiteSchema {
 
     void onCreate(@NonNull SQLiteDatabase db);
 

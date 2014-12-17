@@ -2,11 +2,15 @@ package droidkit.sqlite;
 
 import android.net.Uri;
 
+import droidkit.annotation.SQLiteColumn;
+import droidkit.annotation.SQLiteObject;
+import droidkit.annotation.SQLitePk;
 import droidkit.test.BuildConfig;
 
 /**
  * @author Daniel Serdyukov
  */
+@SQLiteObject("users")
 public class SQLiteUser {
 
     public static final Uri URI = new Uri.Builder()
@@ -15,10 +19,13 @@ public class SQLiteUser {
             .appendPath("users")
             .build();
 
+    @SQLitePk
     long mId;
 
+    @SQLiteColumn("name")
     String mName;
 
+    @SQLiteColumn("age")
     int mAge;
 
     public long getId() {

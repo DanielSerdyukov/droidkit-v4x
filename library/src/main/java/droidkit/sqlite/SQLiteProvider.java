@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import droidkit.util.Dynamic;
+import droidkit.util.DynamicException;
+
 /**
  * @author Daniel Serdyukov
  */
@@ -47,7 +50,7 @@ public class SQLiteProvider extends ContentProvider {
 
     private static final int DATABASE_VERSION = 1;
 
-    private static final String HELPER_DELEGATE = "droidkit.sqlite.SQLite$Delegate";
+    private static final String SQLITE_SCHEMA_IMPL = "droidkit.sqlite.SQLiteSchemaImpl";
 
     private static final String MIME_DIR = "vnd.android.cursor.dir/";
 
@@ -57,7 +60,7 @@ public class SQLiteProvider extends ContentProvider {
 
     private static final Map<Uri, Uri> BASE_URIS = new ConcurrentHashMap<>();
 
-    private SQLiteDelegate mHelperDelegate;
+    private SQLiteSchema mHelperDelegate;
 
     private SQLiteHelper mHelper;
 
@@ -82,13 +85,12 @@ public class SQLiteProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         try {
-            final Class<?> type = Class.forName(HELPER_DELEGATE);
-            mHelperDelegate = (SQLiteDelegate) type.newInstance();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-            throw new RuntimeException(e);
+            mHelperDelegate = Dynamic.init(SQLITE_SCHEMA_IMPL);
+            mHelper = new SQLiteHelper(getContext(), getDatabaseName(), getDatabaseVersion());
+            return true;
+        } catch (DynamicException e) {
+            throw new SQLiteException(e);
         }
-        mHelper = new SQLiteHelper(getContext(), getDatabaseName(), getDatabaseVersion());
-        return true;
     }
 
     @Override
@@ -226,12 +228,6 @@ public class SQLiteProvider extends ContentProvider {
         } finally {
             db.endTransaction();
         }
-    }
-
-    @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-        SQLite.onTrimMemory();
     }
 
     @Nullable

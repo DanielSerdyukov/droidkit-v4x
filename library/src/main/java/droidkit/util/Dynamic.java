@@ -52,6 +52,9 @@ public final class Dynamic {
     @NonNull
     public static <T> T init(@NonNull Class<? extends T> clazz, Object... args) throws DynamicException {
         try {
+            if (args.length == 0) {
+                return clazz.newInstance();
+            }
             final Constructor<T> init = findInit(clazz, args);
             final boolean isAccessible = init.isAccessible();
             try {

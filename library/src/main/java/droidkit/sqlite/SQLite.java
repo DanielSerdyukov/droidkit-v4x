@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import droidkit.util.Dynamic;
+import droidkit.util.DynamicException;
+
 /**
  * @author Daniel Serdyukov
  */
@@ -34,14 +37,14 @@ public abstract class SQLite {
     @SuppressWarnings("unchecked")
     static <T> SQLiteTable<T> getTable(@NonNull Class<?> type) {
         try {
-            SQLiteTable proxy = TABLES.get(type);
+            SQLiteTable<?> proxy = TABLES.get(type);
             if (proxy == null) {
-                proxy = (SQLiteTable) Class.forName(type.getName() + SUFFIX).newInstance();
+                proxy = Dynamic.init(type.getName() + SUFFIX);
                 TABLES.put(type, proxy);
             }
             return (SQLiteTable<T>) proxy;
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        } catch (DynamicException e) {
+            throw new SQLiteException(e);
         }
     }
 
@@ -58,12 +61,6 @@ public abstract class SQLite {
             URIS.put(type, uri);
         }
         return uri;
-    }
-
-    static void onTrimMemory() {
-        for (final SQLiteTable<?> table : TABLES.values()) {
-            table.onTrimMemory();
-        }
     }
 
     public abstract void beginTransaction();

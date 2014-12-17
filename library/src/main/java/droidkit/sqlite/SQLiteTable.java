@@ -35,6 +35,4 @@ public interface SQLiteTable<T> {
 
     void delete(@NonNull ArrayList<ContentProviderOperation> operations, @NonNull Uri uri, @NonNull T object);
 
-    void onTrimMemory();
-
 }
