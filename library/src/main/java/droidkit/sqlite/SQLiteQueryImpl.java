@@ -3,6 +3,7 @@ package droidkit.sqlite;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -17,6 +18,34 @@ import droidkit.io.IOUtils;
  * @author Daniel Serdyukov
  */
 class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
+
+    private static final String[] ROWID_COLUMNS = new String[]{BaseColumns._ID};
+
+    private static final String ASC = " ASC";
+
+    private static final String DESC = " DESC";
+
+    private static final String AND = " AND ";
+
+    private static final String OR = " OR ";
+
+    private static final String COMMA = ", ";
+
+    private static final String EQ = " = ?";
+
+    private static final String LT = " < ?";
+
+    private static final String LT_OR_EQ = " <= ?";
+
+    private static final String GT = " > ?";
+
+    private static final String GT_OR_EQ = " >= ?";
+
+    private static final String MAX = "MAX";
+
+    private static final String MIN = "MIN";
+
+    private static final String SUM = "SUM";
 
     private final ContentResolver mDb;
 
@@ -237,41 +266,62 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     @Override
     public int maxInt(@NonNull String column) {
-        final Cursor cursor = maxValue(column);
-        try {
-            if (cursor.moveToFirst()) {
+        return applyFunc(new SQLiteFunc<Integer>() {
+            @Override
+            public Integer apply(@NonNull Cursor cursor, @NonNull String column) {
                 return cursor.getInt(0);
             }
-        } finally {
-            IOUtils.closeQuietly(cursor);
-        }
-        return 0;
+        }, MAX, column, 0);
     }
 
     @Override
     public long maxLong(@NonNull String column) {
-        final Cursor cursor = maxValue(column);
-        try {
-            if (cursor.moveToFirst()) {
+        return applyFunc(new SQLiteFunc<Long>() {
+            @Override
+            public Long apply(@NonNull Cursor cursor, @NonNull String column) {
                 return cursor.getLong(0);
             }
-        } finally {
-            IOUtils.closeQuietly(cursor);
-        }
-        return 0;
+        }, MAX, column, 0L);
     }
 
     @Override
     public double maxDouble(@NonNull String column) {
-        final Cursor cursor = maxValue(column);
-        try {
-            if (cursor.moveToFirst()) {
+        return applyFunc(new SQLiteFunc<Double>() {
+            @Override
+            public Double apply(@NonNull Cursor cursor, @NonNull String column) {
                 return cursor.getDouble(0);
             }
-        } finally {
-            IOUtils.closeQuietly(cursor);
-        }
-        return 0.0;
+        }, MAX, column, 0.0);
+    }
+
+    @Override
+    public int minInt(@NonNull String column) {
+        return applyFunc(new SQLiteFunc<Integer>() {
+            @Override
+            public Integer apply(@NonNull Cursor cursor, @NonNull String column) {
+                return cursor.getInt(0);
+            }
+        }, MIN, column, 0);
+    }
+
+    @Override
+    public long minLong(@NonNull String column) {
+        return applyFunc(new SQLiteFunc<Long>() {
+            @Override
+            public Long apply(@NonNull Cursor cursor, @NonNull String column) {
+                return cursor.getLong(0);
+            }
+        }, MIN, column, 0L);
+    }
+
+    @Override
+    public double minDouble(@NonNull String column) {
+        return applyFunc(new SQLiteFunc<Double>() {
+            @Override
+            public Double apply(@NonNull Cursor cursor, @NonNull String column) {
+                return cursor.getDouble(0);
+            }
+        }, MIN, column, 0.0);
     }
 
     @NonNull
@@ -310,9 +360,18 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
     }
 
     @NonNull
-    private Cursor maxValue(@NonNull String column) {
-        return mDb.query(makeQueryUri(), new String[]{"MAX(" + column + ")"}, makeWhere(), makeWhereArgs(),
-                TextUtils.join(COMMA, mOrderBy));
+    private <F> F applyFunc(@NonNull SQLiteFunc<F> func, @NonNull String function, @NonNull String column,
+                            @NonNull F defaultValue) {
+        final Cursor cursor = mDb.query(makeQueryUri(), new String[]{function + "(" + column + ")"},
+                makeWhere(), makeWhereArgs(), TextUtils.join(COMMA, mOrderBy));
+        try {
+            if (cursor.moveToFirst()) {
+                return func.apply(cursor, column);
+            }
+        } finally {
+            IOUtils.closeQuietly(cursor);
+        }
+        return defaultValue;
     }
 
 }

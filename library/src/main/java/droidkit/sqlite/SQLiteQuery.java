@@ -1,6 +1,5 @@
 package droidkit.sqlite;
 
-import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -8,28 +7,6 @@ import android.support.annotation.Nullable;
  * @author Daniel Serdyukov
  */
 public interface SQLiteQuery<T> {
-
-    String[] ROWID_COLUMNS = new String[]{BaseColumns._ID};
-
-    String ASC = " ASC";
-
-    String DESC = " DESC";
-
-    String AND = " AND ";
-
-    String OR = " OR ";
-
-    String COMMA = ", ";
-
-    String EQ = " = ?";
-
-    String LT = " < ?";
-
-    String LT_OR_EQ = " <= ?";
-
-    String GT = " > ?";
-
-    String GT_OR_EQ = " >= ?";
 
     @NonNull
     SQLiteQuery<T> groupBy(@NonNull String column);
@@ -117,5 +94,11 @@ public interface SQLiteQuery<T> {
     long maxLong(@NonNull String column);
 
     double maxDouble(@NonNull String column);
+
+    int minInt(@NonNull String column);
+
+    long minLong(@NonNull String column);
+
+    double minDouble(@NonNull String column);
 
 }
