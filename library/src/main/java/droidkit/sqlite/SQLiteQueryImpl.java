@@ -33,6 +33,8 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     private static final String EQ = " = ?";
 
+    private static final String NOT_EQ = " <> ?";
+
     private static final String LT = " < ?";
 
     private static final String LT_OR_EQ = " <= ?";
@@ -40,6 +42,8 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
     private static final String GT = " > ?";
 
     private static final String GT_OR_EQ = " >= ?";
+
+    private static final String BETWEEN = " BETWEEN";
 
     private static final String MAX = "MAX";
 
@@ -158,9 +162,33 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
     @NonNull
     @Override
     public SQLiteQuery<T> equalTo(@NonNull String column, boolean value) {
-        mWhere.add(column + EQ);
-        mWhereArgs.add(value ? TRUE : FALSE);
+        return equalTo(column, value ? TRUE : FALSE);
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> notEqualTo(@NonNull String column, long value) {
+        return notEqualTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> notEqualTo(@NonNull String column, double value) {
+        return notEqualTo(column, String.valueOf(value));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> notEqualTo(@NonNull String column, @NonNull String value) {
+        mWhere.add(column + NOT_EQ);
+        mWhereArgs.add(value);
         return this;
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> notEqualTo(@NonNull String column, boolean value) {
+        return notEqualTo(column, value ? TRUE : FALSE);
     }
 
     @NonNull
@@ -241,6 +269,18 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
         mWhere.add(column + GT_OR_EQ);
         mWhereArgs.add(value);
         return this;
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> between(@NonNull String column, long value1, long value2) {
+        return between(column, String.valueOf(value1), String.valueOf(value2));
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> between(@NonNull String column, double value1, double value2) {
+        return between(column, String.valueOf(value1), String.valueOf(value2));
     }
 
     @NonNull
@@ -390,6 +430,14 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
             IOUtils.closeQuietly(cursor);
         }
         return defaultValue;
+    }
+
+    @NonNull
+    public SQLiteQuery<T> between(@NonNull String column, String value1, String value2) {
+        mWhere.add(column + BETWEEN + " ? AND ?");
+        mWhereArgs.add(value1);
+        mWhereArgs.add(value2);
+        return this;
     }
 
 }

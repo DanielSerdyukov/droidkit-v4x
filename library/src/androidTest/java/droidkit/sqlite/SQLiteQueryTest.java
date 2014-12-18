@@ -70,6 +70,17 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertEquals("User #3", user.getName());
     }
 
+    public void testNotEqual() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
+                .notEqualTo("blocked", true)
+                .all();
+        Assert.assertEquals(5, users.size());
+        for (final SQLiteUser user : users) {
+            Assert.assertFalse(user.isBlocked());
+        }
+    }
+
     public void testEqualAndEqual() throws Exception {
         SQLiteTest.insert10Users(mSQLite);
         final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
@@ -202,6 +213,18 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertEquals(99.5 + 98.5 + 97.5 + 96.5 + 95.5, mSQLite.where(SQLiteUser.class)
                 .lessThan("age", 5)
                 .sumDouble("balance"));
+    }
+
+    public void testBetween() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
+                .between("age", 3, 7)
+                .all();
+        final int[] age = new int[]{3, 4, 5, 6, 7};
+        Assert.assertEquals(age.length, users.size());
+        for (int i = 0; i < age.length; ++i) {
+            Assert.assertEquals(age[i], users.get(i).getAge());
+        }
     }
 
 }

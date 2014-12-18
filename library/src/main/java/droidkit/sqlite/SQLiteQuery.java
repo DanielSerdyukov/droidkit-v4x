@@ -36,6 +36,18 @@ public interface SQLiteQuery<T> {
     SQLiteQuery<T> equalTo(@NonNull String column, boolean value);
 
     @NonNull
+    SQLiteQuery<T> notEqualTo(@NonNull String column, long value);
+
+    @NonNull
+    SQLiteQuery<T> notEqualTo(@NonNull String column, double value);
+
+    @NonNull
+    SQLiteQuery<T> notEqualTo(@NonNull String column, @NonNull String value);
+
+    @NonNull
+    SQLiteQuery<T> notEqualTo(@NonNull String column, boolean value);
+
+    @NonNull
     SQLiteQuery<T> lessThan(@NonNull String column, long value);
 
     @NonNull
@@ -70,6 +82,12 @@ public interface SQLiteQuery<T> {
 
     @NonNull
     SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, @NonNull String value);
+
+    @NonNull
+    SQLiteQuery<T> between(@NonNull String column, long value1, long value2);
+
+    @NonNull
+    SQLiteQuery<T> between(@NonNull String column, double value1, double value2);
 
     @NonNull
     SQLiteQuery<T> and();
