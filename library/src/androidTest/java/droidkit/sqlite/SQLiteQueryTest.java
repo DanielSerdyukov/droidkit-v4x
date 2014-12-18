@@ -156,4 +156,19 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
+    public void testMaxInt() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        Assert.assertEquals(4, mSQLite.where(SQLiteUser.class).lessThan("age", 5).maxInt("age"));
+    }
+
+    public void testMaxLong() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        Assert.assertEquals(5L, mSQLite.where(SQLiteUser.class).lessThan("age", 5).maxLong("_id"));
+    }
+
+    public void testMaxDouble() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        Assert.assertEquals(99.50, mSQLite.where(SQLiteUser.class).lessThan("age", 5).maxDouble("balance"));
+    }
+
 }

@@ -28,6 +28,9 @@ public class SQLiteUser {
     @SQLiteColumn("age")
     int mAge;
 
+    @SQLiteColumn("balance")
+    double mBalance;
+
     public long getId() {
         return mId;
     }
@@ -48,12 +51,21 @@ public class SQLiteUser {
         this.mAge = age;
     }
 
+    public double getBalance() {
+        return mBalance;
+    }
+
+    public void setBalance(double balance) {
+        mBalance = balance;
+    }
+
     @Override
     public String toString() {
         return "SQLiteUser{" +
                 "mId=" + mId +
                 ", mName='" + mName + '\'' +
                 ", mAge=" + mAge +
+                ", mBalance=" + mBalance +
                 '}';
     }
 

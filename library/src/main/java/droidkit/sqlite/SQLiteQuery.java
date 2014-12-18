@@ -112,4 +112,10 @@ public interface SQLiteQuery<T> {
     @Nullable
     T last();
 
+    int maxInt(@NonNull String column);
+
+    long maxLong(@NonNull String column);
+
+    double maxDouble(@NonNull String column);
+
 }

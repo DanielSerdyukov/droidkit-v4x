@@ -235,6 +235,45 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
         return null;
     }
 
+    @Override
+    public int maxInt(@NonNull String column) {
+        final Cursor cursor = maxValue(column);
+        try {
+            if (cursor.moveToFirst()) {
+                return cursor.getInt(0);
+            }
+        } finally {
+            IOUtils.closeQuietly(cursor);
+        }
+        return 0;
+    }
+
+    @Override
+    public long maxLong(@NonNull String column) {
+        final Cursor cursor = maxValue(column);
+        try {
+            if (cursor.moveToFirst()) {
+                return cursor.getLong(0);
+            }
+        } finally {
+            IOUtils.closeQuietly(cursor);
+        }
+        return 0;
+    }
+
+    @Override
+    public double maxDouble(@NonNull String column) {
+        final Cursor cursor = maxValue(column);
+        try {
+            if (cursor.moveToFirst()) {
+                return cursor.getDouble(0);
+            }
+        } finally {
+            IOUtils.closeQuietly(cursor);
+        }
+        return 0.0;
+    }
+
     @NonNull
     private Uri makeQueryUri() {
         Uri uri = mUri;
@@ -268,6 +307,12 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
             return mWhereArgs.toArray(new String[mWhereArgs.size()]);
         }
         return null;
+    }
+
+    @NonNull
+    private Cursor maxValue(@NonNull String column) {
+        return mDb.query(makeQueryUri(), new String[]{"MAX(" + column + ")"}, makeWhere(), makeWhereArgs(),
+                TextUtils.join(COMMA, mOrderBy));
     }
 
 }

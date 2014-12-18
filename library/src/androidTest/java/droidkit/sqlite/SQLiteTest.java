@@ -36,10 +36,12 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
 
     static void insert10Users(@NonNull SQLite sqlite) {
         sqlite.beginTransaction();
+        final double balance = 100.0;
         for (int i = 0; i < 10; ++i) {
             SQLiteUser user = new SQLiteUser();
             user.setName("User #" + i);
             user.setAge(i);
+            user.setBalance(balance - i - 0.50);
             sqlite.insert(user);
         }
         sqlite.commitTransaction();
@@ -56,6 +58,7 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
         final SQLiteUser user = new SQLiteUser();
         user.setName("John");
         user.setAge(25);
+        user.setBalance(55.30);
         mSQLite.insert(user);
         assertSQLiteUser(getMockContentResolver().query(SQLiteUser.URI, null, null, null, null), "John", 25);
     }
@@ -66,6 +69,7 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertNotNull(john);
         john.setName("Jane");
         john.setAge(22);
+        john.setBalance(9.99);
         mSQLite.update(john);
         assertSQLiteUser(getMockContentResolver().query(ContentUris.withAppendedId(SQLiteUser.URI, 1),
                 null, null, null, null), "Jane", 22);
