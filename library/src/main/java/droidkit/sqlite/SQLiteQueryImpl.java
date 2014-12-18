@@ -47,6 +47,10 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     private static final String SUM = "SUM";
 
+    private static final String TRUE = "1";
+
+    private static final String FALSE = "0";
+
     private static final SQLiteFunc<Integer> INT_FUNC = new SQLiteFunc<Integer>() {
         @Override
         public Integer apply(@NonNull Cursor cursor, @NonNull String column) {
@@ -148,6 +152,14 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
     public SQLiteQuery<T> equalTo(@NonNull String column, @NonNull String value) {
         mWhere.add(column + EQ);
         mWhereArgs.add(value);
+        return this;
+    }
+
+    @NonNull
+    @Override
+    public SQLiteQuery<T> equalTo(@NonNull String column, boolean value) {
+        mWhere.add(column + EQ);
+        mWhereArgs.add(value ? TRUE : FALSE);
         return this;
     }
 

@@ -89,15 +89,16 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
                 .equalTo("name", "User #3")
                 .or()
-                .equalTo("age", 4)
+                .equalTo("blocked", true)
                 .all();
-        Assert.assertEquals(2, users.size());
-        SQLiteUser user = users.get(0);
+        Assert.assertEquals(6, users.size());
+        SQLiteUser user = users.get(2);
         Assert.assertNotNull(user);
         Assert.assertEquals("User #3", user.getName());
-        user = users.get(1);
+        Assert.assertFalse(user.isBlocked());
+        user = users.get(4);
         Assert.assertNotNull(user);
-        Assert.assertEquals("User #4", user.getName());
+        Assert.assertTrue(user.isBlocked());
     }
 
     public void testLessThan() throws Exception {

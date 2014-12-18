@@ -24,11 +24,14 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
         SQLite.attach(BuildConfig.APPLICATION_ID, BuildConfig.APPLICATION_ID);
     }
 
-    static void assertSQLiteUser(@NonNull Cursor cursor, @NonNull String name, int age) {
+    static void assertSQLiteUser(@NonNull Cursor cursor, @NonNull String name, int age, double balance,
+                                 boolean blocked) {
         try {
             Assert.assertTrue(cursor.moveToFirst());
             Assert.assertEquals(name, CursorUtils.getString(cursor, "name"));
             Assert.assertEquals(age, CursorUtils.getInt(cursor, "age"));
+            Assert.assertEquals(balance, CursorUtils.getDouble(cursor, "balance"));
+            Assert.assertEquals(blocked, CursorUtils.getBoolean(cursor, "blocked"));
         } finally {
             cursor.close();
         }
@@ -42,6 +45,7 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
             user.setName("User #" + i);
             user.setAge(i);
             user.setBalance(balance - i - 0.50);
+            user.setBlocked(i % 2 == 0);
             sqlite.insert(user);
         }
         sqlite.commitTransaction();
@@ -59,8 +63,10 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
         user.setName("John");
         user.setAge(25);
         user.setBalance(55.30);
+        user.setBlocked(true);
         mSQLite.insert(user);
-        assertSQLiteUser(getMockContentResolver().query(SQLiteUser.URI, null, null, null, null), "John", 25);
+        assertSQLiteUser(getMockContentResolver().query(SQLiteUser.URI, null, null, null, null),
+                "John", 25, 55.30, true);
     }
 
     public void testUpdate() throws Exception {
@@ -70,11 +76,12 @@ public class SQLiteTest extends ProviderTestCase2<SQLiteProvider> {
         john.setName("Jane");
         john.setAge(22);
         john.setBalance(9.99);
+        john.setBlocked(true);
         mSQLite.update(john);
         assertSQLiteUser(getMockContentResolver().query(ContentUris.withAppendedId(SQLiteUser.URI, 1),
-                null, null, null, null), "Jane", 22);
+                null, null, null, null), "Jane", 22, 9.99, true);
         assertSQLiteUser(getMockContentResolver().query(ContentUris.withAppendedId(SQLiteUser.URI, 2),
-                null, null, null, null), "User #1", 1);
+                null, null, null, null), "User #1", 1, 98.5, false);
     }
 
     public void testDelete() throws Exception {

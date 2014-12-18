@@ -20,16 +20,19 @@ public class SQLiteUser {
             .build();
 
     @SQLitePk
-    long mId;
+    private long mId;
 
     @SQLiteColumn("name")
-    String mName;
+    private String mName;
 
     @SQLiteColumn("age")
-    int mAge;
+    private int mAge;
 
     @SQLiteColumn("balance")
-    double mBalance;
+    private double mBalance;
+
+    @SQLiteColumn("blocked")
+    private boolean mBlocked;
 
     public long getId() {
         return mId;
@@ -59,14 +62,12 @@ public class SQLiteUser {
         mBalance = balance;
     }
 
-    @Override
-    public String toString() {
-        return "SQLiteUser{" +
-                "mId=" + mId +
-                ", mName='" + mName + '\'' +
-                ", mAge=" + mAge +
-                ", mBalance=" + mBalance +
-                '}';
+    public boolean isBlocked() {
+        return mBlocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        mBlocked = blocked;
     }
 
 }

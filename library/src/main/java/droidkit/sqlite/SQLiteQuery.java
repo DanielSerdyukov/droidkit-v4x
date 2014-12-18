@@ -33,6 +33,9 @@ public interface SQLiteQuery<T> {
     SQLiteQuery<T> equalTo(@NonNull String column, @NonNull String value);
 
     @NonNull
+    SQLiteQuery<T> equalTo(@NonNull String column, boolean value);
+
+    @NonNull
     SQLiteQuery<T> lessThan(@NonNull String column, long value);
 
     @NonNull
