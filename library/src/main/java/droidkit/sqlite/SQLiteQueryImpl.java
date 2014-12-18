@@ -47,6 +47,27 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     private static final String SUM = "SUM";
 
+    private static final SQLiteFunc<Integer> INT_FUNC = new SQLiteFunc<Integer>() {
+        @Override
+        public Integer apply(@NonNull Cursor cursor, @NonNull String column) {
+            return cursor.getInt(0);
+        }
+    };
+
+    private static final SQLiteFunc<Long> LONG_FUNC = new SQLiteFunc<Long>() {
+        @Override
+        public Long apply(@NonNull Cursor cursor, @NonNull String column) {
+            return cursor.getLong(0);
+        }
+    };
+
+    private static final SQLiteFunc<Double> DOUBLE_FUNC = new SQLiteFunc<Double>() {
+        @Override
+        public Double apply(@NonNull Cursor cursor, @NonNull String column) {
+            return cursor.getDouble(0);
+        }
+    };
+
     private final ContentResolver mDb;
 
     private final Uri mUri;
@@ -266,62 +287,47 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     @Override
     public int maxInt(@NonNull String column) {
-        return applyFunc(new SQLiteFunc<Integer>() {
-            @Override
-            public Integer apply(@NonNull Cursor cursor, @NonNull String column) {
-                return cursor.getInt(0);
-            }
-        }, MAX, column, 0);
+        return applyFunc(INT_FUNC, MAX, column, 0);
     }
 
     @Override
     public long maxLong(@NonNull String column) {
-        return applyFunc(new SQLiteFunc<Long>() {
-            @Override
-            public Long apply(@NonNull Cursor cursor, @NonNull String column) {
-                return cursor.getLong(0);
-            }
-        }, MAX, column, 0L);
+        return applyFunc(LONG_FUNC, MAX, column, 0L);
     }
 
     @Override
     public double maxDouble(@NonNull String column) {
-        return applyFunc(new SQLiteFunc<Double>() {
-            @Override
-            public Double apply(@NonNull Cursor cursor, @NonNull String column) {
-                return cursor.getDouble(0);
-            }
-        }, MAX, column, 0.0);
+        return applyFunc(DOUBLE_FUNC, MAX, column, 0.0);
     }
 
     @Override
     public int minInt(@NonNull String column) {
-        return applyFunc(new SQLiteFunc<Integer>() {
-            @Override
-            public Integer apply(@NonNull Cursor cursor, @NonNull String column) {
-                return cursor.getInt(0);
-            }
-        }, MIN, column, 0);
+        return applyFunc(INT_FUNC, MIN, column, 0);
     }
 
     @Override
     public long minLong(@NonNull String column) {
-        return applyFunc(new SQLiteFunc<Long>() {
-            @Override
-            public Long apply(@NonNull Cursor cursor, @NonNull String column) {
-                return cursor.getLong(0);
-            }
-        }, MIN, column, 0L);
+        return applyFunc(LONG_FUNC, MIN, column, 0L);
     }
 
     @Override
     public double minDouble(@NonNull String column) {
-        return applyFunc(new SQLiteFunc<Double>() {
-            @Override
-            public Double apply(@NonNull Cursor cursor, @NonNull String column) {
-                return cursor.getDouble(0);
-            }
-        }, MIN, column, 0.0);
+        return applyFunc(DOUBLE_FUNC, MIN, column, 0.0);
+    }
+
+    @Override
+    public int sumInt(@NonNull String column) {
+        return applyFunc(INT_FUNC, SUM, column, 0);
+    }
+
+    @Override
+    public long sumLong(@NonNull String column) {
+        return applyFunc(LONG_FUNC, SUM, column, 0L);
+    }
+
+    @Override
+    public double sumDouble(@NonNull String column) {
+        return applyFunc(DOUBLE_FUNC, SUM, column, 0.0);
     }
 
     @NonNull

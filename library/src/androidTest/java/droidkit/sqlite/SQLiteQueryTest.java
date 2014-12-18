@@ -186,4 +186,21 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertEquals(95.50, mSQLite.where(SQLiteUser.class).lessThan("age", 5).minDouble("balance"));
     }
 
+    public void testSumInt() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        Assert.assertEquals(6 + 7 + 8 + 9, mSQLite.where(SQLiteUser.class).greaterThan("age", 5).sumInt("age"));
+    }
+
+    public void testSumLong() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        Assert.assertEquals(7L + 8L + 9L + 10L, mSQLite.where(SQLiteUser.class).greaterThan("age", 5).sumLong("_id"));
+    }
+
+    public void testSumDouble() throws Exception {
+        SQLiteTest.insert10Users(mSQLite);
+        Assert.assertEquals(99.5 + 98.5 + 97.5 + 96.5 + 95.5, mSQLite.where(SQLiteUser.class)
+                .lessThan("age", 5)
+                .sumDouble("balance"));
+    }
+
 }

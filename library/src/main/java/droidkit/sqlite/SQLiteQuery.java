@@ -23,12 +23,6 @@ public interface SQLiteQuery<T> {
     @NonNull
     SQLiteQuery<T> limit(long limit);
 
-    /*@NonNull
-    SQLiteQuery<T> beginWhereGroup();
-
-    @NonNull
-    SQLiteQuery<T> endWhereGroup();*/
-
     @NonNull
     SQLiteQuery<T> equalTo(@NonNull String column, long value);
 
@@ -100,5 +94,11 @@ public interface SQLiteQuery<T> {
     long minLong(@NonNull String column);
 
     double minDouble(@NonNull String column);
+
+    int sumInt(@NonNull String column);
+
+    long sumLong(@NonNull String column);
+
+    double sumDouble(@NonNull String column);
 
 }
