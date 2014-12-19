@@ -11,6 +11,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import droidkit.content.BoolValue;
+import droidkit.content.FloatValue;
+import droidkit.content.IntValue;
+import droidkit.content.LongValue;
+import droidkit.content.StringSetValue;
+import droidkit.content.StringValue;
+import droidkit.content.TypedPrefs;
+
 /**
  * @author Daniel Serdyukov
  */

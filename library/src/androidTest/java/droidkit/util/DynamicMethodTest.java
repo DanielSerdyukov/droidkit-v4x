@@ -3,6 +3,8 @@ package droidkit.util;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import droidkit.util.DynamicMethod;
+
 /**
  * @author Daniel Serdyukov
  */

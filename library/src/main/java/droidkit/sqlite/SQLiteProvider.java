@@ -79,7 +79,7 @@ public class SQLiteProvider extends ContentProvider {
     @Override
     public void attachInfo(Context context, ProviderInfo info) {
         super.attachInfo(context, info);
-        SQLite.attach(info.name, info.authority);
+        SQLite.attach(info.authority);
     }
 
     @Override

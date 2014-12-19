@@ -5,6 +5,8 @@ import junit.framework.TestCase;
 
 import java.util.Arrays;
 
+import droidkit.crypto.Hex;
+
 /**
  * @author Daniel Serdyukov
  */

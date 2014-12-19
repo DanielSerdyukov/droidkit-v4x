@@ -11,6 +11,16 @@ import junit.framework.Assert;
 import java.util.ArrayList;
 import java.util.List;
 
+import droidkit.content.BoolValue;
+import droidkit.content.DoubleValue;
+import droidkit.content.FloatValue;
+import droidkit.content.IntValue;
+import droidkit.content.LongValue;
+import droidkit.content.ParcelableValue;
+import droidkit.content.StringListValue;
+import droidkit.content.StringValue;
+import droidkit.content.TypedBundle;
+
 /**
  * @author Daniel Serdyukov
  */

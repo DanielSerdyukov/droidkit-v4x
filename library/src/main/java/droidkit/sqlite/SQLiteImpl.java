@@ -88,4 +88,10 @@ class SQLiteImpl extends SQLite {
         return new SQLiteQueryImpl<>(mDb, getUri(type), SQLite.<T>getTable(type));
     }
 
+    @NonNull
+    @Override
+    public <T> SQLiteResult<T> all(@NonNull Class<T> type) {
+        return where(type).all();
+    }
+
 }

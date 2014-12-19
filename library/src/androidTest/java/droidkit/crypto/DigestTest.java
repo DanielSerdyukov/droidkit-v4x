@@ -3,6 +3,8 @@ package droidkit.crypto;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import droidkit.crypto.Digest;
+
 /**
  * @author Daniel Serdyukov
  */

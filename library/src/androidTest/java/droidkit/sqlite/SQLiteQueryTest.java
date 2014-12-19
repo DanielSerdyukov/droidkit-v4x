@@ -1,11 +1,11 @@
 package droidkit.sqlite;
 
+import android.content.ContentValues;
 import android.test.ProviderTestCase2;
 
 import junit.framework.Assert;
 
-import droidkit.io.IOUtils;
-import droidkit.test.BuildConfig;
+import droidkit.BuildConfig;
 
 /**
  * @author Daniel Serdyukov
@@ -16,211 +16,161 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
 
     public SQLiteQueryTest() {
         super(SQLiteProvider.class, BuildConfig.APPLICATION_ID);
-        SQLite.attach(BuildConfig.APPLICATION_ID, BuildConfig.APPLICATION_ID);
     }
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        getMockContentResolver();
-        mSQLite = SQLite.with(getMockContext());
+        mSQLite = SQLite.with(getMockContext(), BuildConfig.APPLICATION_ID);
+        final ContentValues values = new ContentValues();
+        for (int i = 1; i <= 10; ++i) {
+            values.put(User.Columns.NAME, i % 2 == 0 ? "Jane" : "John");
+            values.put(User.Columns.AGE, 20 + i);
+            values.put(User.Columns.BALANCE, 9.99 + i);
+            values.put(User.Columns.BLOCKED, i % 2 == 0);
+            getMockContentResolver().insert(User.URI, values);
+            values.clear();
+        }
     }
 
     public void testQueryAll() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class).all();
-        try {
-            Assert.assertEquals(10, users.size());
-            Assert.assertEquals(4, users.get(4).getAge());
-        } finally {
-            IOUtils.closeQuietly(users);
-        }
+        Assert.assertEquals(10, mSQLite.all(User.class).size());
     }
 
     public void testOrderBy() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        SQLiteUser user = mSQLite.where(SQLiteUser.class).orderBy("age", false).first();
-        Assert.assertNotNull(user);
-        Assert.assertEquals(9, user.getAge());
-        user = mSQLite.where(SQLiteUser.class).orderBy("age", false).last();
-        Assert.assertNotNull(user);
-        Assert.assertEquals(0, user.getAge());
+        final SQLiteResult<User> users = mSQLite.where(User.class).orderBy(User.Columns.AGE, false).all();
+        for (int i = 0; i < 10; ++i) {
+            Assert.assertEquals(30 - i, users.get(i).getAge());
+        }
     }
 
     public void testLimit() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .limit(3)
+        Assert.assertEquals(5, mSQLite.where(User.class).limit(5).all().size());
+    }
+
+    public void testEqualTo() throws Exception {
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .equalTo(User.Columns.NAME, "John")
                 .all();
-        try {
-            Assert.assertEquals(3, users.size());
-        } finally {
-            IOUtils.closeQuietly(users);
+        for (final User user : users) {
+            Assert.assertEquals("John", user.getName());
         }
     }
 
-    public void testEqual() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .equalTo("name", "User #3")
+    public void testNotEqualTo() throws Exception {
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .notEqualTo(User.Columns.NAME, "John")
                 .all();
-        Assert.assertEquals(1, users.size());
-        final SQLiteUser user = users.get(0);
-        Assert.assertNotNull(user);
-        Assert.assertEquals("User #3", user.getName());
-    }
-
-    public void testNotEqual() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .notEqualTo("blocked", true)
-                .all();
-        Assert.assertEquals(5, users.size());
-        for (final SQLiteUser user : users) {
-            Assert.assertFalse(user.isBlocked());
+        Assert.assertFalse(users.isEmpty());
+        for (final User user : users) {
+            Assert.assertEquals("Jane", user.getName());
         }
     }
 
-    public void testEqualAndEqual() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .equalTo("name", "User #3")
+    public void testWhereAnd() throws Exception {
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .equalTo(User.Columns.NAME, "Jane")
                 .and()
-                .equalTo("age", 3)
+                .equalTo(User.Columns.AGE, 22)
                 .all();
-        Assert.assertEquals(1, users.size());
-        final SQLiteUser user = users.get(0);
-        Assert.assertNotNull(user);
-        Assert.assertEquals("User #3", user.getName());
-        Assert.assertEquals(3, user.getAge());
+        Assert.assertFalse(users.isEmpty());
+        for (final User user : users) {
+            Assert.assertEquals("Jane", user.getName());
+            Assert.assertEquals(22, user.getAge());
+        }
     }
 
-    public void testEqualOrEqual() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .equalTo("name", "User #3")
+    public void testWhereOr() throws Exception {
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .equalTo(User.Columns.NAME, "Jane")
                 .or()
-                .equalTo("blocked", true)
+                .equalTo(User.Columns.AGE, 23)
                 .all();
         Assert.assertEquals(6, users.size());
-        SQLiteUser user = users.get(2);
-        Assert.assertNotNull(user);
-        Assert.assertEquals("User #3", user.getName());
-        Assert.assertFalse(user.isBlocked());
-        user = users.get(4);
-        Assert.assertNotNull(user);
-        Assert.assertTrue(user.isBlocked());
     }
 
     public void testLessThan() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .lessThan("age", 5)
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .lessThan(User.Columns.AGE, 25)
                 .all();
-        final long[] ids = new long[]{1, 2, 3, 4, 5};
-        Assert.assertEquals(ids.length, users.size());
-        for (int i = 0; i < ids.length; ++i) {
-            final SQLiteUser user = users.get(i);
-            Assert.assertNotNull(user);
-            Assert.assertEquals(ids[i], user.getId());
-        }
+        Assert.assertEquals(4, users.size());
     }
 
     public void testLessThanOrEqualTo() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .lessThanOrEqualTo("age", 5)
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .lessThanOrEqualTo(User.Columns.AGE, 25)
                 .all();
-        final long[] ids = new long[]{1, 2, 3, 4, 5, 6};
-        Assert.assertEquals(ids.length, users.size());
-        for (int i = 0; i < ids.length; ++i) {
-            final SQLiteUser user = users.get(i);
-            Assert.assertNotNull(user);
-            Assert.assertEquals(ids[i], user.getId());
-        }
+        Assert.assertEquals(5, users.size());
     }
 
     public void testGreaterThan() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .greaterThan("age", 5)
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .greaterThan(User.Columns.AGE, 25)
                 .all();
-        final long[] ids = new long[]{7, 8, 9, 10};
-        Assert.assertEquals(ids.length, users.size());
-        for (int i = 0; i < ids.length; ++i) {
-            final SQLiteUser user = users.get(i);
-            Assert.assertNotNull(user);
-            Assert.assertEquals(ids[i], user.getId());
-        }
+        Assert.assertEquals(5, users.size());
     }
 
     public void testGreaterThanOrEqualTo() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .greaterThanOrEqualTo("age", 5)
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .greaterThanOrEqualTo(User.Columns.AGE, 25)
                 .all();
-        final long[] ids = new long[]{6, 7, 8, 9, 10};
-        Assert.assertEquals(ids.length, users.size());
-        for (int i = 0; i < ids.length; ++i) {
-            final SQLiteUser user = users.get(i);
-            Assert.assertNotNull(user);
-            Assert.assertEquals(ids[i], user.getId());
-        }
+        Assert.assertEquals(6, users.size());
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+        getMockContentResolver().delete(User.URI, null, null);
+        super.tearDown();
     }
 
     public void testMaxInt() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(4, mSQLite.where(SQLiteUser.class).lessThan("age", 5).maxInt("age"));
+        Assert.assertEquals(24, mSQLite.where(User.class).lessThan(User.Columns.AGE, 25)
+                .maxInt(User.Columns.AGE));
     }
 
     public void testMaxLong() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(5L, mSQLite.where(SQLiteUser.class).lessThan("age", 5).maxLong("_id"));
+        Assert.assertEquals(24L, mSQLite.where(User.class).lessThan(User.Columns.AGE, 25)
+                .maxLong(User.Columns.AGE));
     }
 
     public void testMaxDouble() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(99.50, mSQLite.where(SQLiteUser.class).lessThan("age", 5).maxDouble("balance"));
+        Assert.assertEquals(13.99, mSQLite.where(User.class).lessThan(User.Columns.AGE, 25)
+                .maxDouble(User.Columns.BALANCE));
     }
 
     public void testMinInt() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(6, mSQLite.where(SQLiteUser.class).greaterThan("age", 5).minInt("age"));
+        Assert.assertEquals(26, mSQLite.where(User.class).greaterThan(User.Columns.AGE, 25)
+                .minInt(User.Columns.AGE));
     }
 
     public void testMinLong() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(7L, mSQLite.where(SQLiteUser.class).greaterThan("age", 5).minLong("_id"));
+        Assert.assertEquals(26L, mSQLite.where(User.class).greaterThan(User.Columns.AGE, 25)
+                .minLong(User.Columns.AGE));
     }
 
     public void testMinDouble() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(95.50, mSQLite.where(SQLiteUser.class).lessThan("age", 5).minDouble("balance"));
+        Assert.assertEquals(15.99, mSQLite.where(User.class).greaterThan(User.Columns.AGE, 25)
+                .minDouble(User.Columns.BALANCE));
     }
 
     public void testSumInt() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(6 + 7 + 8 + 9, mSQLite.where(SQLiteUser.class).greaterThan("age", 5).sumInt("age"));
+        Assert.assertEquals(21 + 22 + 23 + 24, mSQLite.where(User.class).lessThan(User.Columns.AGE, 25)
+                .sumInt(User.Columns.AGE));
     }
 
     public void testSumLong() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(7L + 8L + 9L + 10L, mSQLite.where(SQLiteUser.class).greaterThan("age", 5).sumLong("_id"));
+        Assert.assertEquals(21L + 22L + 23L + 24L, mSQLite.where(User.class).lessThan(User.Columns.AGE, 25)
+                .sumLong(User.Columns.AGE));
     }
 
     public void testSumDouble() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        Assert.assertEquals(99.5 + 98.5 + 97.5 + 96.5 + 95.5, mSQLite.where(SQLiteUser.class)
-                .lessThan("age", 5)
-                .sumDouble("balance"));
+        Assert.assertEquals(10.99 + 11.99 + 12.99 + 13.99, mSQLite.where(User.class).lessThan(User.Columns.AGE, 25)
+                .sumDouble(User.Columns.BALANCE));
     }
 
     public void testBetween() throws Exception {
-        SQLiteTest.insert10Users(mSQLite);
-        final SQLiteResult<SQLiteUser> users = mSQLite.where(SQLiteUser.class)
-                .between("age", 3, 7)
-                .all();
-        final int[] age = new int[]{3, 4, 5, 6, 7};
+        final SQLiteResult<User> users = mSQLite.where(User.class).between(User.Columns.AGE, 24, 26).all();
+        final int age[] = new int[]{24, 25, 26};
         Assert.assertEquals(age.length, users.size());
         for (int i = 0; i < age.length; ++i) {
             Assert.assertEquals(age[i], users.get(i).getAge());

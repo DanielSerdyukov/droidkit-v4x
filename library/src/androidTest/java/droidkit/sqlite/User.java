@@ -1,17 +1,18 @@
 package droidkit.sqlite;
 
 import android.net.Uri;
+import android.provider.BaseColumns;
 
+import droidkit.BuildConfig;
 import droidkit.annotation.SQLiteColumn;
 import droidkit.annotation.SQLiteObject;
 import droidkit.annotation.SQLitePk;
-import droidkit.test.BuildConfig;
 
 /**
  * @author Daniel Serdyukov
  */
 @SQLiteObject("users")
-public class SQLiteUser {
+public class User {
 
     public static final Uri URI = new Uri.Builder()
             .scheme(SQLiteProvider.SCHEME)
@@ -22,16 +23,16 @@ public class SQLiteUser {
     @SQLitePk
     private long mId;
 
-    @SQLiteColumn("name")
+    @SQLiteColumn(Columns.NAME)
     private String mName;
 
-    @SQLiteColumn("age")
+    @SQLiteColumn(Columns.AGE)
     private int mAge;
 
-    @SQLiteColumn("balance")
+    @SQLiteColumn(Columns.BALANCE)
     private double mBalance;
 
-    @SQLiteColumn("blocked")
+    @SQLiteColumn(Columns.BLOCKED)
     private boolean mBlocked;
 
     public long getId() {
@@ -68,6 +69,24 @@ public class SQLiteUser {
 
     public void setBlocked(boolean blocked) {
         mBlocked = blocked;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "mId=" + mId +
+                ", mName='" + mName + '\'' +
+                ", mAge=" + mAge +
+                ", mBalance=" + mBalance +
+                ", mBlocked=" + mBlocked +
+                '}';
+    }
+
+    public static interface Columns extends BaseColumns {
+        String NAME = "name";
+        String AGE = "age";
+        String BALANCE = "balance";
+        String BLOCKED = "blocked";
     }
 
 }

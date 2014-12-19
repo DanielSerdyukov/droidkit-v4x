@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
- 
+
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.1"
@@ -9,8 +9,6 @@ android {
         targetSdkVersion 21
         versionCode 401001
         versionName "4.1.1"
-        testApplicationId "droidkit.test"
-        testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
     }
 
     compileOptions {
@@ -46,7 +44,6 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v13:21.0.+'
-    androidTestCompile 'com.jakewharton.espresso:espresso:1.+'
     debugCompile 'com.squareup:javawriter:2.5.+'
     debugCompile files("${project.rootDir}/../droidkit-processor/build/libs/droidkit-processor-1.0.1.jar")
 }

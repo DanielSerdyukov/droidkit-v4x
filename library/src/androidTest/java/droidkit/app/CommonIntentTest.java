@@ -5,6 +5,9 @@ import android.test.ApplicationTestCase;
 
 import java.util.Arrays;
 
+import droidkit.app.CommonIntent;
+import droidkit.app.IntentUtils;
+
 /**
  * @author Daniel Serdyukov
  */

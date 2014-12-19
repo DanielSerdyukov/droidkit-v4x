@@ -28,8 +28,13 @@ public abstract class SQLite {
         return new SQLiteImpl(context.getContentResolver(), AUTHORITY_REF.get());
     }
 
+    public static SQLite with(@NonNull Context context, @NonNull String authority) {
+        AUTHORITY_REF.lazySet(authority);
+        return new SQLiteImpl(context.getContentResolver(), authority);
+    }
+
     @SuppressWarnings("unused")
-    static void attach(@NonNull String providerName, @NonNull String authority) {
+    static void attach(@NonNull String authority) {
         AUTHORITY_REF.lazySet(authority);
     }
 
@@ -78,5 +83,8 @@ public abstract class SQLite {
 
     @NonNull
     public abstract <T> SQLiteQuery<T> where(@NonNull Class<T> type);
+
+    @NonNull
+    public abstract <T> SQLiteResult<T> all(@NonNull Class<T> type);
 
 }

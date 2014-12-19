@@ -9,6 +9,8 @@ import junit.framework.Assert;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import droidkit.concurrent.MainQueue;
+
 /**
  * @author Daniel Serdyukov
  */
