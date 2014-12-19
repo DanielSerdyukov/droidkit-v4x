@@ -14,17 +14,12 @@ import droidkit.sqlite.SQLiteResult;
  */
 public class SQLiteLoader<T> extends AsyncTaskLoader<SQLiteResult<T>> {
 
-    private static final Object mLock = new Object();
-
-    private final Class<T> mType;
-
     private final SQLiteQuery<T> mQuery;
 
     private SQLiteResult<T> mResult;
 
     public SQLiteLoader(@NonNull Context context, @NonNull Class<T> type) {
         super(context);
-        mType = type;
         mQuery = SQLite.with(context).where(type);
     }
 
