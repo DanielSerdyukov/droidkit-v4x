@@ -15,5 +15,5 @@ allprojects {
 }
 
 ext {
-    buildNumber = project.hasProperty("teamcity") ? project.teamcity['build.number'] : 1
+    buildNumber = 40000 + (project.hasProperty("teamcity") ? Integer.parseInt(project.teamcity['build.number']) : 1)
 }
