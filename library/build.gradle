@@ -44,8 +44,13 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v13:21.0.+'
-    debugCompile 'com.squareup:javawriter:2.5.+'
-    debugCompile files("${project.rootDir}/../droidkit-processor/build/libs/droidkit-processor-1.0.1.jar")
+    compile 'droidkit:processor:1.0.+'
+}
+
+task("echoProperties") {
+    project.properties.each {
+        println(it)
+    }
 }
 
 apply plugin: 'sonar-runner'
