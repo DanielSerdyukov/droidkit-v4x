@@ -53,4 +53,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         Assert.assertNotNull(((Drawer) fragment).getListView());
     }
 
+    public void testLoaderInFragment() throws Exception {
+        final Fragment fragment = mActivity.getFragmentManager().findFragmentById(R.id.drawer);
+        Assert.assertNotNull(fragment);
+        final Drawer drawer = (Drawer) fragment;
+        Assert.assertTrue(drawer.isOnCreateLoader());
+        Assert.assertTrue(drawer.isOnLoadFinished());
+    }
+
 }
