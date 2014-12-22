@@ -48,6 +48,7 @@ dependencies {
 }
 
 task("echoProperties") {
+    println(project.buildNumber)
     project.properties.each {
         println(it)
     }

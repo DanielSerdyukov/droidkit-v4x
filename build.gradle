@@ -13,3 +13,7 @@ allprojects {
         maven { url 'http://dl.bintray.com/dvp-troy/maven' }
     }
 }
+
+ext {
+    buildNumber = project.hasProperty("teamcity") ? project.teamcity['build.number'] : 1
+}
