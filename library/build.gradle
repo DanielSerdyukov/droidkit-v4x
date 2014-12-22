@@ -44,7 +44,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v13:21.0.+'
-    compile 'droidkit:processor:1.0.+'
+    compile 'droidkit:droidkit-processor:1.0.+'
 }
 
 apply plugin: 'sonar-runner'

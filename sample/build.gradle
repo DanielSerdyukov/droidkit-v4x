@@ -28,6 +28,4 @@ android {
 dependencies {
     compile project(':library')
     androidTestCompile 'com.jakewharton.espresso:espresso:1.+'
-    debugCompile 'com.squareup:javawriter:2.5.+'
-    debugCompile files("${project.rootDir}/../droidkit-processor/build/libs/droidkit-processor-1.0.1.jar")
 }
