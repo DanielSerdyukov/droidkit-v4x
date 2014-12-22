@@ -10,3 +10,5 @@
 }
 
 -dontwarn javax.**
+-dontwarn com.squareup.**
+-dontwarn droidkit.processor.**
