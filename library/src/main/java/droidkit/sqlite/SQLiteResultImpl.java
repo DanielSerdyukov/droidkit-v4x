@@ -1,6 +1,7 @@
 package droidkit.sqlite;
 
 import android.content.ContentResolver;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -57,6 +58,16 @@ class SQLiteResultImpl<T> extends SQLiteEmptyResult<T> {
     @Override
     public int size() {
         return mRowIds.getCount();
+    }
+
+    @Override
+    public void registerContentObserver(@NonNull ContentObserver observer) {
+        mRowIds.registerContentObserver(observer);
+    }
+
+    @Override
+    public void unregisterContentObserver(@NonNull ContentObserver observer) {
+        mRowIds.unregisterContentObserver(observer);
     }
 
     @Override

@@ -8,7 +8,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 21
         versionCode project.buildNumber
-        versionName "4.1.1"
+        versionName "4.1.2"
     }
 
     compileOptions {
