@@ -302,11 +302,8 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
     public SQLiteResult<T> all() {
         final Cursor cursor = mDb.query(makeQueryUri(), ROWID_COLUMNS, makeWhere(), makeWhereArgs(),
                 TextUtils.join(COMMA, mOrderBy));
-        if (cursor.moveToFirst()) {
-            return new SQLiteResultImpl<>(mDb, mUri, mTable, cursor);
-        }
-        IOUtils.closeQuietly(cursor);
-        return new SQLiteEmptyResult<>();
+        cursor.moveToFirst();
+        return new SQLiteResultImpl<>(mDb, mUri, mTable, cursor);
     }
 
     @Nullable
