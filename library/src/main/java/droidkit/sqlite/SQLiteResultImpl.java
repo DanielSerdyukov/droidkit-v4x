@@ -7,12 +7,14 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 
+import java.util.AbstractList;
+
 import droidkit.io.IOUtils;
 
 /**
  * @author Daniel Serdyukov
  */
-class SQLiteResultImpl<T> extends SQLiteEmptyResult<T> {
+class SQLiteResultImpl<T> extends AbstractList<T> implements SQLiteResult<T> {
 
     private final ContentResolver mDb;
 
