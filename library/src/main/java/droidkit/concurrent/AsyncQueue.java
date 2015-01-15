@@ -6,10 +6,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,18 +19,14 @@ public class AsyncQueue implements ExecQueue {
 
     private static final ThreadFactory THREAD_FACTORY = new NamedThreadFactory("async #");
 
-    private final ExecutorService mAsyncExecutor;
-
-    private final ScheduledExecutorService mScheduledExecutor;
+    private final ScheduledExecutorService mAsyncExecutor;
 
     public AsyncQueue() {
-        this(CORE_SIZE + 1, CORE_SIZE * 2 + 1);
+        this(CORE_SIZE + 1);
     }
 
-    protected AsyncQueue(int corePoolSize, int maximumPoolSize) {
-        mAsyncExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 10L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(), THREAD_FACTORY);
-        mScheduledExecutor = Executors.newScheduledThreadPool(corePoolSize, THREAD_FACTORY);
+    protected AsyncQueue(int corePoolSize) {
+        mAsyncExecutor = Executors.newScheduledThreadPool(corePoolSize, THREAD_FACTORY);
     }
 
     public static AsyncQueue get() {
@@ -54,23 +48,19 @@ public class AsyncQueue implements ExecQueue {
     @NonNull
     @Override
     public <V> Future<V> invoke(@NonNull Callable<V> task, long delay) {
-        return mScheduledExecutor.schedule(task, delay, TimeUnit.MILLISECONDS);
+        return mAsyncExecutor.schedule(task, delay, TimeUnit.MILLISECONDS);
     }
 
     @NonNull
     @Override
     public Future<?> invoke(@NonNull Runnable task, long delay) {
-        return mScheduledExecutor.schedule(task, delay, TimeUnit.MILLISECONDS);
+        return mAsyncExecutor.schedule(task, delay, TimeUnit.MILLISECONDS);
     }
 
     @NonNull
     @Override
     public ExecutorService getExecutor() {
         return mAsyncExecutor;
-    }
-
-    protected ScheduledExecutorService getScheduledExecutor() {
-        return mScheduledExecutor;
     }
 
     private static final class Holder {

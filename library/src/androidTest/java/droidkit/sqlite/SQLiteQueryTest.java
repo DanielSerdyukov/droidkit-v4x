@@ -177,4 +177,16 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
+    public void testCount() throws Exception {
+        final long count = mSQLite.where(User.class)
+                .equalTo(User.Columns.NAME, "John")
+                .count(User.Columns.NAME);
+        Assert.assertEquals(5, count);
+    }
+
+    public void testCountDistinct() throws Exception {
+        final long count = mSQLite.where(User.class).countDistinct(User.Columns.NAME);
+        Assert.assertEquals(2, count);
+    }
+
 }

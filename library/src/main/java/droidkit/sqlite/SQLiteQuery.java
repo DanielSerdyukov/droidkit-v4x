@@ -122,4 +122,8 @@ public interface SQLiteQuery<T> {
 
     double sumDouble(@NonNull String column);
 
+    long count(@NonNull String column);
+
+    long countDistinct(@NonNull String column);
+
 }

@@ -214,10 +214,12 @@ public class SQLiteProvider extends ContentProvider {
             final Set<Uri> notifyUris = new HashSet<>(opSize);
             for (int i = 0; i < opSize; ++i) {
                 final ContentProviderResult result = operations.get(i).apply(this, results, i);
-                if (matchUri(result.uri) == URI_MATCH_ID) {
-                    notifyUris.add(getBaseUri(result.uri));
-                } else {
-                    notifyUris.add(result.uri);
+                if (result.uri != null) {
+                    if (matchUri(result.uri) == URI_MATCH_ID) {
+                        notifyUris.add(getBaseUri(result.uri));
+                    } else {
+                        notifyUris.add(result.uri);
+                    }
                 }
             }
             db.setTransactionSuccessful();

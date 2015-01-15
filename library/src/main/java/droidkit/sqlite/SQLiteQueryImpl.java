@@ -51,6 +51,10 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
 
     private static final String SUM = "SUM";
 
+    private static final String COUNT = "COUNT";
+
+    private static final String DISTINCT = "DISTINCT ";
+
     private static final String TRUE = "1";
 
     private static final String FALSE = "0";
@@ -377,6 +381,16 @@ class SQLiteQueryImpl<T> implements SQLiteQuery<T> {
     @Override
     public double sumDouble(@NonNull String column) {
         return applyFunc(DOUBLE_FUNC, SUM, column, 0.0);
+    }
+
+    @Override
+    public long count(@NonNull String column) {
+        return applyFunc(LONG_FUNC, COUNT, column, 0L);
+    }
+
+    @Override
+    public long countDistinct(@NonNull String column) {
+        return applyFunc(LONG_FUNC, COUNT, DISTINCT + column, 0L);
     }
 
     @NonNull
