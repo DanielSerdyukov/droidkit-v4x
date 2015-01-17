@@ -16,12 +16,13 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
 
     public SQLiteQueryTest() {
         super(SQLiteProvider.class, BuildConfig.APPLICATION_ID);
+        SQLite.attach(BuildConfig.APPLICATION_ID);
     }
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        mSQLite = SQLite.with(getMockContext(), BuildConfig.APPLICATION_ID);
+        mSQLite = SQLite.with(getMockContext());
         final ContentValues values = new ContentValues();
         for (int i = 1; i <= 10; ++i) {
             values.put(User.Columns.NAME, i % 2 == 0 ? "Jane" : "John");

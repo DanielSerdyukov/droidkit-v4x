@@ -10,9 +10,12 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        // FIXME: remove when javapoet will be supported in jcenter
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
 }
 
 ext {
     buildNumber = 40000 + (project.hasProperty("teamcity") ? Integer.parseInt(project.teamcity['build.number']) : 1)
+    versionName = '4.3.1'
 }

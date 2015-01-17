@@ -2,13 +2,13 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode project.buildNumber
-        versionName "4.2.1"
+        versionCode rootProject.buildNumber
+        versionName rootProject.versionName
     }
 
     compileOptions {
@@ -25,7 +25,7 @@ android {
             testCoverageEnabled true
         }
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -44,7 +44,17 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v13:21.0.+'
-    compile 'droidkit:droidkit-processor:1.1.+'
+    compile 'com.squareup:javapoet:1.0.+'
+    compile files("${project.rootDir}/processor/build/libs/processor-${project.versionName}.jar")
+}
+
+task buildProcessor(type: GradleBuild) {
+    dir = file('../processor')
+    tasks = ['assemble']
+}
+
+tasks.preBuild {
+    dependsOn buildProcessor
 }
 
 apply plugin: 'sonar-runner'
@@ -73,9 +83,10 @@ afterEvaluate { project ->
     uploadArchives {
         repositories {
             mavenDeployer {
-                repository(url: "https://api.bintray.com/maven/dvp-troy/droidkit/droidkit") {
+                /*repository(url: "https://api.bintray.com/maven/dvp-troy/droidkit/droidkit") {
                     authentication(userName: bintrayUser, password: bintrayKey)
-                }
+                }*/
+                repository(url: "file://${project.rootDir}/../maven")
                 pom.project {
                     issueManagement {
                         system 'github'

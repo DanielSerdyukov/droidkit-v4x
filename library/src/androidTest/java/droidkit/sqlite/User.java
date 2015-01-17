@@ -35,6 +35,9 @@ public class User {
     @SQLiteColumn(Columns.BLOCKED)
     private boolean mBlocked;
 
+    @SQLiteColumn(Columns.AVATAR)
+    private byte[] mAvatar;
+
     public long getId() {
         return mId;
     }
@@ -71,22 +74,12 @@ public class User {
         mBlocked = blocked;
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "mId=" + mId +
-                ", mName='" + mName + '\'' +
-                ", mAge=" + mAge +
-                ", mBalance=" + mBalance +
-                ", mBlocked=" + mBlocked +
-                '}';
-    }
-
     public static interface Columns extends BaseColumns {
         String NAME = "name";
         String AGE = "age";
         String BALANCE = "balance";
         String BLOCKED = "blocked";
+        String AVATAR = "avatar";
     }
 
 }

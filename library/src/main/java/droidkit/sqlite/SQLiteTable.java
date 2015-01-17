@@ -3,6 +3,7 @@ package droidkit.sqlite;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,10 +16,14 @@ import java.util.ArrayList;
 public interface SQLiteTable<T> {
 
     @NonNull
-    String getTableName();
+    String getName();
+
+    void create(@NonNull SQLiteDatabase db);
+
+    void upgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion);
 
     @Nullable
-    T get(long rowId);
+    T getRow(long rowId);
 
     @NonNull
     T instantiate(@NonNull Cursor cursor);

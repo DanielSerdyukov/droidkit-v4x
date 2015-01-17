@@ -1,9 +1,14 @@
 package droidkit.sqlite;
 
+import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.net.Uri;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,7 +19,7 @@ import droidkit.util.DynamicException;
 /**
  * @author Daniel Serdyukov
  */
-public abstract class SQLite {
+public class SQLite {
 
     private static final String SUFFIX = "$SQLiteTable";
 
@@ -24,23 +29,30 @@ public abstract class SQLite {
 
     private static final Map<Class<?>, Uri> URIS = new ConcurrentHashMap<>();
 
+    private static final int TRANSACTION_CAPACITY = 1024;
+
+    private final ContentResolver mDb;
+
+    private final String mAuthority;
+
+    private ArrayList<ContentProviderOperation> mOperations;
+
+    SQLite(@NonNull ContentResolver db, @NonNull String authority) {
+        mDb = db;
+        mAuthority = authority;
+    }
+
     public static SQLite with(@NonNull Context context) {
-        return new SQLiteImpl(context.getContentResolver(), AUTHORITY_REF.get());
+        return new SQLite(context.getContentResolver(), AUTHORITY_REF.get());
     }
 
-    public static SQLite with(@NonNull Context context, @NonNull String authority) {
-        AUTHORITY_REF.lazySet(authority);
-        return new SQLiteImpl(context.getContentResolver(), authority);
-    }
-
-    @SuppressWarnings("unused")
     static void attach(@NonNull String authority) {
         AUTHORITY_REF.lazySet(authority);
     }
 
     @NonNull
     @SuppressWarnings("unchecked")
-    static <T> SQLiteTable<T> getTable(@NonNull Class<?> type) {
+    static <T> SQLiteTable<T> acquireTable(@NonNull Class<?> type) {
         try {
             SQLiteTable<?> proxy = TABLES.get(type);
             if (proxy == null) {
@@ -55,36 +67,78 @@ public abstract class SQLite {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    static Uri getUri(@NonNull Class<?> type) {
+    static Uri acquireUri(@NonNull Class<?> type) {
         Uri uri = URIS.get(type);
         if (uri == null) {
             uri = new Uri.Builder()
                     .scheme(SQLiteProvider.SCHEME)
                     .authority(AUTHORITY_REF.get())
-                    .appendPath(getTable(type).getTableName())
+                    .appendPath(acquireTable(type).getName())
                     .build();
             URIS.put(type, uri);
         }
         return uri;
     }
 
-    public abstract void beginTransaction();
+    public void beginTransaction() {
+        if (mOperations == null) {
+            mOperations = new ArrayList<>(TRANSACTION_CAPACITY);
+        }
+    }
 
-    public abstract void commitTransaction();
+    public void commitTransaction() {
+        if (mOperations != null) {
+            try {
+                mDb.applyBatch(mAuthority, mOperations);
+            } catch (RemoteException | OperationApplicationException e) {
+                throw new SQLiteException(e);
+            }
+            mOperations.clear();
+            mOperations = null;
+        }
+    }
 
     @NonNull
-    public abstract SQLite insert(@NonNull Object object);
+    public SQLite insert(@NonNull Object object) {
+        final Class<?> type = object.getClass();
+        if (mOperations != null) {
+            acquireTable(type).insert(mOperations, acquireUri(type), object);
+        } else {
+            acquireTable(type).insert(mDb, acquireUri(type), object);
+        }
+        return this;
+    }
 
     @NonNull
-    public abstract SQLite update(@NonNull Object object);
+    public SQLite update(@NonNull Object object) {
+        final Class<?> type = object.getClass();
+        if (mOperations != null) {
+            acquireTable(type).update(mOperations, acquireUri(type), object);
+        } else {
+            acquireTable(type).update(mDb, acquireUri(type), object);
+        }
+        return this;
+    }
 
     @NonNull
-    public abstract SQLite delete(@NonNull Object object);
+    public SQLite delete(@NonNull Object object) {
+        final Class<?> type = object.getClass();
+        if (mOperations != null) {
+            acquireTable(type).delete(mOperations, acquireUri(type), object);
+        } else {
+            acquireTable(type).delete(mDb, acquireUri(type), object);
+        }
+        return this;
+    }
 
     @NonNull
-    public abstract <T> SQLiteQuery<T> where(@NonNull Class<T> type);
+    public <T> SQLiteQuery<T> where(@NonNull Class<T> type) {
+        return new SQLiteQuery<>(mDb, acquireUri(type), SQLite.<T>acquireTable(type));
+    }
 
     @NonNull
-    public abstract <T> SQLiteResult<T> all(@NonNull Class<T> type);
+    public <T> SQLiteResult<T> all(@NonNull Class<T> type) {
+        return where(type).all();
+    }
 
 }

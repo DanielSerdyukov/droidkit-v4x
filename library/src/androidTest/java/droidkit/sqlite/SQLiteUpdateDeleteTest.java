@@ -15,12 +15,13 @@ public class SQLiteUpdateDeleteTest extends ProviderTestCase2<SQLiteProvider> {
 
     public SQLiteUpdateDeleteTest() {
         super(SQLiteProvider.class, BuildConfig.APPLICATION_ID);
+        SQLite.attach(BuildConfig.APPLICATION_ID);
     }
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        mSQLite = SQLite.with(getMockContext(), BuildConfig.APPLICATION_ID);
+        mSQLite = SQLite.with(getMockContext());
         final User user = new User();
         user.setName("John");
         user.setAge(26);

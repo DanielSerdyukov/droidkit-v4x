@@ -10,7 +10,6 @@ import android.content.OperationApplicationException;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
@@ -50,8 +49,6 @@ public class SQLiteProvider extends ContentProvider {
 
     private static final int DATABASE_VERSION = 1;
 
-    private static final String SQLITE_SCHEMA_IMPL = "droidkit.sqlite.SQLiteSchemaImpl";
-
     private static final String MIME_DIR = "vnd.android.cursor.dir/";
 
     private static final String MIME_ITEM = "vnd.android.cursor.item/";
@@ -60,7 +57,7 @@ public class SQLiteProvider extends ContentProvider {
 
     private static final Map<Uri, Uri> BASE_URIS = new ConcurrentHashMap<>();
 
-    private SQLiteSchema mHelperDelegate;
+    private static final String SQLITE_SCHEMA_IMPL = "droidkit.sqlite.SQLiteSchemaImpl";
 
     private SQLiteHelper mHelper;
 
@@ -85,12 +82,12 @@ public class SQLiteProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         try {
-            mHelperDelegate = Dynamic.init(SQLITE_SCHEMA_IMPL);
-            mHelper = new SQLiteHelper(getContext(), getDatabaseName(), getDatabaseVersion());
-            return true;
+            mHelper = new SQLiteHelper(getContext(), getDatabaseName(), getDatabaseVersion(),
+                    Dynamic.<SQLiteSchema>init(SQLITE_SCHEMA_IMPL));
         } catch (DynamicException e) {
             throw new SQLiteException(e);
         }
+        return true;
     }
 
     @Override
@@ -241,14 +238,6 @@ public class SQLiteProvider extends ContentProvider {
         return DATABASE_VERSION;
     }
 
-    protected void onCreateDatabase(@NonNull SQLiteDatabase db) {
-        mHelperDelegate.onCreate(db);
-    }
-
-    protected void onUpgradeDatabase(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
-        mHelperDelegate.onUpgrade(db, oldVersion, newVersion);
-    }
-
     @SuppressWarnings("unused")
     protected void onChange(@NonNull Uri baseUri, int affectedRows) {
         getContext().getContentResolver().notifyChange(baseUri, null, false);
@@ -291,24 +280,6 @@ public class SQLiteProvider extends ContentProvider {
             BASE_URIS.put(uri, baseUri);
         }
         return baseUri;
-    }
-
-    private final class SQLiteHelper extends SQLiteOpenHelper {
-
-        public SQLiteHelper(Context context, String name, int version) {
-            super(context, name, null, version);
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            SQLiteProvider.this.onCreateDatabase(db);
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            SQLiteProvider.this.onUpgradeDatabase(db, oldVersion, newVersion);
-        }
-
     }
 
 }
