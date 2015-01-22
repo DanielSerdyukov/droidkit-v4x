@@ -2,6 +2,7 @@ package droidkit.processor;
 
 import android.annotation.SuppressLint;
 
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -12,11 +13,13 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 
+import java.io.BufferedWriter;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +28,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import droidkit.annotation.SQLiteColumn;
@@ -35,29 +39,29 @@ import droidkit.annotation.SQLitePk;
  */
 class SQLiteTableMaker implements ClassMaker {
 
-    static final String ANDROID_DATABASE_SQLITE_SQLITE_DATABASE = "android.database.sqlite.SQLiteDatabase";
+    static final String SQLITE_DATABASE = "SQLiteDatabase";
 
-    static final Class<?> DROIDKIT_SQLITE_SQLITE_TABLE;
+    private static final String ANDROID_DATABASE = "android.database";
 
-    static {
-        try {
-            DROIDKIT_SQLITE_SQLITE_TABLE = Class.forName("droidkit.sqlite.SQLiteTable");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    static final String ANDROID_DATABASE_SQLITE = ANDROID_DATABASE + ".sqlite";
 
-    private static final String ANDROID_DATABASE_CURSOR = "android.database.Cursor";
+    private static final String CURSOR = "Cursor";
 
-    private static final String ANDROID_CONTENT_CONTENT_RESOLVER = "android.content.ContentResolver";
+    private static final String ANDROID_CONTENT = "android.content";
 
-    private static final String ANDROID_NET_URI = "android.net.Uri";
+    private static final String CONTENT_RESOLVER = "ContentResolver";
 
-    private static final String ANDROID_CONTENT_CONTENT_PROVIDER_OPERATION = "android.content.ContentProviderOperation";
+    private static final String ANDROID_NET = "android.net";
 
-    private static final String ANDROID_CONTENT_CONTENT_VALUES = "android.content.ContentValues";
+    private static final String URI = "Uri";
 
-    private static final String DROIDKIT_CONTENT_CONTENT_VALUES_COMPAT = "droidkit.content.ContentValuesCompat";
+    private static final String CONTENT_PROVIDER_OPERATION = "ContentProviderOperation";
+
+    private static final String CONTENT_VALUES = "ContentValues";
+
+    private static final String DROIDKIT_CONTENT = "droidkit.content";
+
+    private static final String CONTENT_VALUES_COMPAT = "ContentValuesCompat";
 
     private static final String SUFFIX = "$SQLiteTable";
 
@@ -65,7 +69,7 @@ class SQLiteTableMaker implements ClassMaker {
 
     private final JavacProcessingEnvironment mEnv;
 
-    private final TypeElement mTypeElement;
+    private final TypeElement mOriginType;
 
     private final String mTableName;
 
@@ -75,9 +79,9 @@ class SQLiteTableMaker implements ClassMaker {
 
     public SQLiteTableMaker(ProcessingEnvironment env, Element element, String tableName) {
         mEnv = (JavacProcessingEnvironment) env;
-        mTypeElement = (TypeElement) element;
+        mOriginType = (TypeElement) element;
         mTableName = tableName;
-        mGenericType = Types.get(mTypeElement.asType());
+        mGenericType = Types.get(mOriginType.asType());
         mTypeUtils = new TypeUtils(mEnv);
         collectColumnSpecs();
     }
@@ -85,20 +89,21 @@ class SQLiteTableMaker implements ClassMaker {
     @Override
     @SuppressLint("NewApi")
     public JavaFile make() throws Exception {
-        final TypeSpec.Builder builder = TypeSpec.classBuilder(mTypeElement.getSimpleName() + SUFFIX)
+        mEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generate SQLiteTable<"
+                + mOriginType + "> implementation");
+        final TypeSpec.Builder builder = TypeSpec.classBuilder(mOriginType.getSimpleName() + SUFFIX)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addSuperinterface(Types.parameterizedType(DROIDKIT_SQLITE_SQLITE_TABLE, mGenericType));
+                .addSuperinterface(Types.parameterizedType(ClassName
+                        .get("droidkit.sqlite", "SQLiteTable"), mGenericType));
         brewFields(builder);
-        implementMethods(builder);
+        brewMethods(builder);
         final TypeSpec spec = builder.build();
-        final JavaFile javaFile = new JavaFile.Builder()
-                .packageName(mTypeElement.getEnclosingElement().toString())
-                .fileComment(AUTO_GENERATED)
-                .typeSpec(spec)
+        final JavaFile javaFile = JavaFile.builder(mOriginType.getEnclosingElement().toString(), spec)
+                .addFileComment(AUTO_GENERATED)
                 .build();
         final JavaFileObject sourceFile = mEnv.getFiler()
-                .createSourceFile(javaFile.packageName + "." + spec.name, mTypeElement);
-        try (final Writer writer = sourceFile.openWriter()) {
+                .createSourceFile(javaFile.packageName + "." + spec.name, mOriginType);
+        try (final Writer writer = new BufferedWriter(sourceFile.openWriter())) {
             javaFile.emit(writer);
         }
         return javaFile;
@@ -109,7 +114,7 @@ class SQLiteTableMaker implements ClassMaker {
     }
 
     private void collectColumnSpecs() {
-        final List<? extends Element> elements = mTypeElement.getEnclosedElements();
+        final List<? extends Element> elements = mOriginType.getEnclosedElements();
         for (final Element element : elements) {
             if (ElementKind.FIELD == element.getKind()) {
                 final SQLitePk pk = element.getAnnotation(SQLitePk.class);
@@ -134,14 +139,14 @@ class SQLiteTableMaker implements ClassMaker {
     }
 
     private void brewFields(TypeSpec.Builder builder) {
-        final FieldSpec.Builder cache = FieldSpec.builder(Types.parameterizedType(
-                ConcurrentHashMap.class, Long.class, mGenericType
-        ), "CACHE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-        cache.initializer("new ConcurrentHashMap<>()");
-        builder.addField(cache.build());
+        builder.addField(FieldSpec.builder(
+                Types.parameterizedType(ClassName.get(Map.class), ClassName.get(String.class), mGenericType),
+                "CACHE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer("new $T<>()", ClassName.get(ConcurrentHashMap.class))
+                .build());
     }
 
-    private void implementMethods(TypeSpec.Builder builder) {
+    private void brewMethods(TypeSpec.Builder builder) {
         brewGetNameMethod(builder);
         brewCreateMethod(builder);
         brewUpgradeMethod(builder);
@@ -161,8 +166,8 @@ class SQLiteTableMaker implements ClassMaker {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(String.class)
-                .addCode(new CodeBlock.Builder()
-                        .statement("return $S", mTableName)
+                .addCode(CodeBlock.builder()
+                        .addStatement("return $S", mTableName)
                         .build())
                 .build());
     }
@@ -171,7 +176,7 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("create")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(mTypeUtils.asType(ANDROID_DATABASE_SQLITE_SQLITE_DATABASE), "db")
+                .addParameter(ClassName.get(ANDROID_DATABASE_SQLITE, SQLITE_DATABASE), "db")
                 .addCode("db.execSQL($S);\n", "CREATE TABLE IF NOT EXISTS " + mTableName + "(" +
                         StringUtils.join(", ", mColumnsSpecs) + ");")
                 .build());
@@ -181,7 +186,7 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("upgrade")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(mTypeUtils.asType(ANDROID_DATABASE_SQLITE_SQLITE_DATABASE), "db")
+                .addParameter(ClassName.get(ANDROID_DATABASE_SQLITE, SQLITE_DATABASE), "db")
                 .addParameter(Integer.TYPE, "oldVersion")
                 .addParameter(Integer.TYPE, "newVersion")
                 .addCode("db.execSQL($S);\n", "DROP TABLE IF EXISTS " + mTableName + ";")
@@ -200,18 +205,19 @@ class SQLiteTableMaker implements ClassMaker {
     }
 
     private void brewInstantiateMethod(TypeSpec.Builder builder) {
-        final CodeBlock.Builder codeBlock = new CodeBlock.Builder();
-        codeBlock.statement("final $T object = new $T()", mGenericType, mGenericType);
+        final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        codeBlock.addStatement("final $T object = new $T()", mGenericType, mGenericType);
         for (final SQLiteColumnSpec spec : mColumnsSpecs) {
             if (!StringUtils.isEmpty(spec.field)) {
-                codeBlock.statement("object.$L = " + SQLiteColumnSpec.toCursorType(spec.type), spec.field, spec.name);
+                codeBlock.addStatement("object.$L = " + SQLiteColumnSpec.toCursorType(spec.type),
+                        spec.field, spec.name);
             }
         }
-        codeBlock.statement("return object");
+        codeBlock.addStatement("return object");
         builder.addMethod(MethodSpec.methodBuilder("instantiate")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(mTypeUtils.asType(ANDROID_DATABASE_CURSOR), "cursor")
+                .addParameter(ClassName.get(ANDROID_DATABASE, CURSOR), "cursor")
                 .returns(mGenericType)
                 .addCode(codeBlock.build())
                 .build());
@@ -221,8 +227,8 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("insert")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(mTypeUtils.asType(ANDROID_CONTENT_CONTENT_RESOLVER), "db")
-                .addParameter(mTypeUtils.asType(ANDROID_NET_URI), "uri")
+                .addParameter(ClassName.get(ANDROID_CONTENT, CONTENT_RESOLVER), "db")
+                .addParameter(ClassName.get(ANDROID_NET, URI), "uri")
                 .addParameter(mGenericType, "object")
                 .addCode("db.insert(uri, toContentValues(object));\n")
                 .build());
@@ -232,9 +238,9 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("insert")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(Types.parameterizedType(ArrayList.class, mTypeUtils
-                        .asType(ANDROID_CONTENT_CONTENT_PROVIDER_OPERATION)), "operations")
-                .addParameter(mTypeUtils.asType(ANDROID_NET_URI), "uri")
+                .addParameter(Types.parameterizedType(ArrayList.class,
+                        ClassName.get(ANDROID_CONTENT, CONTENT_PROVIDER_OPERATION)), "operations")
+                .addParameter(ClassName.get(ANDROID_NET, URI), "uri")
                 .addParameter(mGenericType, "object")
                 .addCode("operations.add(ContentProviderOperation" +
                         ".newInsert(uri)" +
@@ -247,8 +253,8 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("update")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(mTypeUtils.asType(ANDROID_CONTENT_CONTENT_RESOLVER), "db")
-                .addParameter(mTypeUtils.asType(ANDROID_NET_URI), "uri")
+                .addParameter(ClassName.get(ANDROID_CONTENT, CONTENT_RESOLVER), "db")
+                .addParameter(ClassName.get(ANDROID_NET, URI), "uri")
                 .addParameter(mGenericType, "object")
                 .addCode("db.update(uri, toContentValues(object), SQLiteProvider.WHERE_ID_EQ," +
                         " new String[]{String.valueOf(object.$L)});\n", findPk().field)
@@ -259,11 +265,11 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("update")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(Types.parameterizedType(ArrayList.class, mTypeUtils
-                        .asType(ANDROID_CONTENT_CONTENT_PROVIDER_OPERATION)), "operations")
-                .addParameter(mTypeUtils.asType(ANDROID_NET_URI), "uri")
+                .addParameter(Types.parameterizedType(ArrayList.class,
+                        ClassName.get(ANDROID_CONTENT, CONTENT_PROVIDER_OPERATION)), "operations")
+                .addParameter(ClassName.get(ANDROID_NET, URI), "uri")
                 .addParameter(mGenericType, "object")
-                .addCode(new CodeBlock.Builder()
+                .addCode(CodeBlock.builder()
                         .add("operations.add(ContentProviderOperation\n")
                         .indent()
                         .add(".newUpdate(uri)\n")
@@ -280,8 +286,8 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("delete")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(mTypeUtils.asType(ANDROID_CONTENT_CONTENT_RESOLVER), "db")
-                .addParameter(mTypeUtils.asType(ANDROID_NET_URI), "uri")
+                .addParameter(ClassName.get(ANDROID_CONTENT, CONTENT_RESOLVER), "db")
+                .addParameter(ClassName.get(ANDROID_NET, URI), "uri")
                 .addParameter(mGenericType, "object")
                 .addCode("db.delete(uri, SQLiteProvider.WHERE_ID_EQ," +
                         " new String[]{String.valueOf(object.$L)});\n", findPk().field)
@@ -292,11 +298,11 @@ class SQLiteTableMaker implements ClassMaker {
         builder.addMethod(MethodSpec.methodBuilder("delete")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(Types.parameterizedType(ArrayList.class, mTypeUtils
-                        .asType(ANDROID_CONTENT_CONTENT_PROVIDER_OPERATION)), "operations")
-                .addParameter(mTypeUtils.asType(ANDROID_NET_URI), "uri")
+                .addParameter(Types.parameterizedType(ArrayList.class,
+                        ClassName.get(ANDROID_CONTENT, CONTENT_PROVIDER_OPERATION)), "operations")
+                .addParameter(ClassName.get(ANDROID_NET, URI), "uri")
                 .addParameter(mGenericType, "object")
-                .addCode(new CodeBlock.Builder()
+                .addCode(CodeBlock.builder()
                         .add("operations.add(ContentProviderOperation\n")
                         .indent()
                         .add(".newDelete(uri)\n")
@@ -309,22 +315,22 @@ class SQLiteTableMaker implements ClassMaker {
     }
 
     private void brewToContentValuesMethod(TypeSpec.Builder builder) {
-        final Type cv = mTypeUtils.asType(ANDROID_CONTENT_CONTENT_VALUES);
-        final Type cvc = mTypeUtils.asType(DROIDKIT_CONTENT_CONTENT_VALUES_COMPAT);
-        final CodeBlock.Builder codeBlock = new CodeBlock.Builder();
-        codeBlock.statement("final $T values = new $T()", cv, cv);
+        final ClassName cv = ClassName.get(ANDROID_CONTENT, CONTENT_VALUES);
+        final ClassName cvc = ClassName.get(DROIDKIT_CONTENT, CONTENT_VALUES_COMPAT);
+        final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        codeBlock.addStatement("final $T values = new $T()", cv, cv);
         for (final SQLiteColumnSpec spec : mColumnsSpecs) {
             if (!StringUtils.isEmpty(spec.field)) {
                 if (spec.pk) {
                     codeBlock.beginControlFlow("if(object.$L > 0)", spec.field);
-                    codeBlock.statement("$T.put(values, $S, object.$L)", cvc, spec.name, spec.field);
+                    codeBlock.addStatement("$T.put(values, $S, object.$L)", cvc, spec.name, spec.field);
                     codeBlock.endControlFlow();
                 } else {
-                    codeBlock.statement("$T.put(values, $S, object.$L)", cvc, spec.name, spec.field);
+                    codeBlock.addStatement("$T.put(values, $S, object.$L)", cvc, spec.name, spec.field);
                 }
             }
         }
-        codeBlock.statement("return values");
+        codeBlock.addStatement("return values");
         builder.addMethod(MethodSpec.methodBuilder("toContentValues")
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(mGenericType, "object")

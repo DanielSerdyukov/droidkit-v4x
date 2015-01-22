@@ -70,7 +70,7 @@ public class SQLiteUpdateDeleteTest extends ProviderTestCase2<SQLiteProvider> {
         mSQLite.delete(john);
 
         Assert.assertNull(mSQLite.where(User.class)
-                .equalTo(User.Columns.NAME, "Jane")
+                .equalTo(User.Columns.NAME, "John")
                 .first());
     }
 
@@ -84,7 +84,7 @@ public class SQLiteUpdateDeleteTest extends ProviderTestCase2<SQLiteProvider> {
         mSQLite.commitTransaction();
 
         Assert.assertNull(mSQLite.where(User.class)
-                .equalTo(User.Columns.NAME, "Jane")
+                .equalTo(User.Columns.NAME, "John")
                 .first());
     }
 

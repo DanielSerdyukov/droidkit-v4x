@@ -10,8 +10,6 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
-        // FIXME: remove when javapoet will be supported in jcenter
-        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
 }
 

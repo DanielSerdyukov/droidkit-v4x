@@ -3,17 +3,17 @@ package droidkit.concurrent;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.LargeTest;
 
 import junit.framework.Assert;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import droidkit.concurrent.MainQueue;
-
 /**
  * @author Daniel Serdyukov
  */
+@LargeTest
 public class MainQueueTest extends AndroidTestCase {
 
     private static final long DELAY = 350;

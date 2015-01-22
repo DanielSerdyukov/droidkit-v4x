@@ -12,7 +12,14 @@ localProperties.entrySet().each() { entry ->
 }
 
 dependencies {
+    compile 'com.google.guava:guava:18.0'
     compile files("${System.properties['java.home']}/../lib/tools.jar")
     compile files(new File(project.ext["sdk.dir"], '/platforms/android-21/android.jar'))
-    compile 'com.squareup:javapoet:1.0.+'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+jar { // FIXME: remove, when javapoet will be added to jcenter
+    from configurations.compile.findAll {
+        it.name.contains('javapoet')
+    }.collect { zipTree(it) }
 }

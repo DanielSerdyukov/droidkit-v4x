@@ -3,6 +3,7 @@ package droidkit.concurrent;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.LargeTest;
 
 import junit.framework.Assert;
 
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Daniel Serdyukov
  */
+@LargeTest
 public class AsyncQueueTest extends AndroidTestCase {
 
     private static final int DELAY = 1000;
