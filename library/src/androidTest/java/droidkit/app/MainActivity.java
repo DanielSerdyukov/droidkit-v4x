@@ -1,15 +1,20 @@
-package droidkit.activity;
+package droidkit.app;
 
 import android.app.Activity;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
 import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
+import droidkit.annotation.OnCreateLoader;
+import droidkit.annotation.OnLoadFinished;
+import droidkit.content.FakeLoader;
+import droidkit.content.Loaders;
 
 /**
  * @author Daniel Serdyukov
@@ -25,12 +30,19 @@ public class MainActivity extends Activity {
 
     boolean mSettingsActionClicked;
 
-    MenuItem mAddMenuItem;
+    Cursor mFakeCursor;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(droidkit.test.R.layout.ac_main);
+        if (savedInstanceState == null) {
+            getFragmentManager()
+                    .beginTransaction()
+                    .add(droidkit.test.R.id.content, new MainFragment())
+                    .commit();
+        }
+        Loaders.init(getLoaderManager(), droidkit.test.R.id.fake_loader, Bundle.EMPTY, this);
     }
 
     @Override
@@ -54,9 +66,14 @@ public class MainActivity extends Activity {
         mSettingsActionClicked = true;
     }
 
-    @OnActionClick(droidkit.test.R.id.action_add)
-    void onAddAction(MenuItem item) {
-        mAddMenuItem = item;
+    @OnLoadFinished(droidkit.test.R.id.fake_loader)
+    void onFakeLoad(Loader<Cursor> loader, Cursor result) {
+        mFakeCursor = result;
+    }
+
+    @OnCreateLoader(droidkit.test.R.id.fake_loader)
+    Loader<Cursor> onCreateFakeLoader() {
+        return new FakeLoader(getApplicationContext(), MainActivity.class.getSimpleName());
     }
 
 }

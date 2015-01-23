@@ -41,8 +41,6 @@ import droidkit.annotation.OnClick;
  */
 class LifecycleMaker implements ClassMaker {
 
-    static final String M_DELEGATE = "mDelegate";
-
     static final String M_ON_CLICK = "mOnClick";
 
     static final String M_ON_ACTION_CLICK = "mOnActionClick";
@@ -110,6 +108,7 @@ class LifecycleMaker implements ClassMaker {
         mEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generate " + mOriginType + " proxy");
         final TypeSpec.Builder builder = TypeSpec.classBuilder(mOriginType.getSimpleName() + PROXY)
                 .addModifiers(Modifier.PUBLIC)
+                .addOriginatingElement(mOriginType)
                 .superclass(Types.get(mOriginType.getSuperclass()));
         brewFields(builder);
         brewMethods(builder);

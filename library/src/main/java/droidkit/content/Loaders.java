@@ -11,7 +11,7 @@ import droidkit.util.DynamicException;
  */
 public final class Loaders {
 
-    private static final String LC = "Lc";
+    private static final String LC = "$LC";
 
     private Loaders() {
     }
@@ -91,7 +91,7 @@ public final class Loaders {
     }
 
     private static String getCallbacksClassName(int loaderId, @NonNull Object delegate) {
-        return String.format("%s$%s%d", delegate.getClass().getName(), LC, loaderId);
+        return String.format("%s%s%d", delegate.getClass().getName(), LC, loaderId);
     }
 
 }

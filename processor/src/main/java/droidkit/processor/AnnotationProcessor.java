@@ -22,8 +22,6 @@ import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 import droidkit.annotation.OnCreateLoader;
-import droidkit.annotation.OnLoadFinished;
-import droidkit.annotation.OnResetLoader;
 import droidkit.annotation.SQLiteObject;
 
 /**
@@ -34,22 +32,21 @@ import droidkit.annotation.SQLiteObject;
         "droidkit.annotation.InjectView",
         "droidkit.annotation.OnClick",
         "droidkit.annotation.OnActionClick",
-        "droidkit.annotation.OnCreateLoader",
-        "droidkit.annotation.OnLoadFinished",
-        "droidkit.annotation.OnResetLoader"
+        "droidkit.annotation.OnCreateLoader"
 })
 public class AnnotationProcessor extends AbstractProcessor {
 
     private static final List<Class<? extends Annotation>> INJECTIONS = Arrays.asList(
             InjectView.class,
             OnClick.class,
-            OnActionClick.class,
-            OnCreateLoader.class,
-            OnLoadFinished.class,
-            OnResetLoader.class
+            OnActionClick.class
     );
 
     private static final String ANDROID_APP_ACTIVITY = "android.app.Activity";
+
+    private static final String ANDROID_APP_FRAGMENT = "android.app.Fragment";
+
+    private static final String ANDROID_SUPPORT_V4_APP_FRAGMENT = "android.support.v4.app.Fragment";
 
     private TypeUtils mTypeUtils;
 
@@ -90,6 +87,10 @@ public class AnnotationProcessor extends AbstractProcessor {
                     if (mTypeUtils.isSubtype(originType, ANDROID_APP_ACTIVITY)) {
                         new ActivityMaker(processingEnv, originType).make();
                         classMakers.add(originType);
+                    } else if (mTypeUtils.isSubtype(originType, ANDROID_APP_FRAGMENT)
+                            || mTypeUtils.isSubtype(originType, ANDROID_SUPPORT_V4_APP_FRAGMENT)) {
+                        new FragmentMaker(processingEnv, originType).make();
+                        classMakers.add(originType);
                     }
                 }
             }
@@ -113,7 +114,15 @@ public class AnnotationProcessor extends AbstractProcessor {
     }
 
     private void processLoaderCallbacks(RoundEnvironment roundEnv) throws Exception {
-
+        final Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(OnCreateLoader.class);
+        for (final Element element : elements) {
+            final Element originType = element.getEnclosingElement();
+            checkInNestedClass(originType, "@OnCreateLoader not supported for nested classes");
+            final OnCreateLoader onCreateLoader = element.getAnnotation(OnCreateLoader.class);
+            for (final int loaderId : onCreateLoader.value()) {
+                new LoaderCallbacksMaker(processingEnv, originType, loaderId).make();
+            }
+        }
     }
 
     private void checkInNestedClass(Element element, String message) {

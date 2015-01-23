@@ -10,6 +10,7 @@ import com.sun.tools.javac.tree.TreeMaker;
 import java.lang.reflect.Type;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author Daniel Serdyukov
@@ -37,8 +38,12 @@ final class TypeUtils {
         return (T) mJavacElements.getTree(element);
     }
 
-    boolean isSubtype(Element element, String className) {
-        return mJavacTypes.isSubtype(element.asType(), mJavacElements.getTypeElement(className).asType());
+    boolean isSubtype(Element type, String baseType) {
+        return isSubtype(type.asType(), baseType);
+    }
+
+    boolean isSubtype(TypeMirror type, String baseType) {
+        return mJavacTypes.isSubtype(type, mJavacElements.getTypeElement(baseType).asType());
     }
 
     void extend(Element target, String superclass) {

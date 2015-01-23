@@ -3,7 +3,6 @@ package droidkit.processor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 
 import java.util.List;
@@ -23,88 +22,71 @@ import droidkit.annotation.OnClick;
 /**
  * @author Daniel Serdyukov
  */
-class ActivityMaker extends LifecycleMaker {
+class FragmentMaker extends LifecycleMaker {
 
-    ActivityMaker(ProcessingEnvironment env, Element element) {
+    public FragmentMaker(ProcessingEnvironment env, Element element) {
         super(env, element);
     }
 
     @Override
     protected void brewMethods(TypeSpec.Builder builder) {
-        brewSetContentView1Method(builder);
-        brewSetContentView2Method(builder);
-        brewOnPostCreateMethod(builder);
+        brewOnViewCreatedMethod(builder);
+        brewOnActivityCreatedMethod(builder);
         brewOnOptionsItemSelectedMethod(builder);
-        brewOnResumeMethod(builder, Modifier.PROTECTED);
-        brewOnPauseMethod(builder, Modifier.PROTECTED);
-        brewOnDestroyMethod(builder);
-        brewFindAllViewsMethod(builder);
+        brewOnResumeMethod(builder, Modifier.PUBLIC);
+        brewOnPauseMethod(builder, Modifier.PUBLIC);
+        brewOnDestroyViewMethod(builder);
         brewOnActionClickEmitters(builder);
         brewOnClickEmitters(builder);
     }
 
-    private void brewSetContentView1Method(TypeSpec.Builder builder) {
-        builder.addMethod(MethodSpec.methodBuilder("setContentView")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(Integer.TYPE, "layoutResId")
-                        .build())
-                .addStatement("super.setContentView(layoutResId)")
-                .addStatement("findAllViews()")
-                .build());
-    }
-
-    private void brewSetContentView2Method(TypeSpec.Builder builder) {
-        builder.addMethod(MethodSpec.methodBuilder("setContentView")
+    private void brewOnViewCreatedMethod(TypeSpec.Builder builder) {
+        final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        for (final Map.Entry<Element, InjectView> entry : mInjectView.entrySet()) {
+            codeBlock.addStatement("$L.$L = $T.findById(view, $L)",
+                    M_DELEGATE, entry.getKey().getSimpleName(),
+                    ClassName.get("droidkit.view", "Views"),
+                    entry.getValue().value());
+        }
+        for (final OnClick onClick : mOnClick.values()) {
+            for (final int viewId : onClick.value()) {
+                codeBlock.addStatement("emitOnClick$L(view)", viewId);
+            }
+        }
+        builder.addMethod(MethodSpec.methodBuilder("onViewCreated")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ClassName.get("android.view", "View"), "view")
-                .addStatement("super.setContentView(view)")
-                .addStatement("findAllViews()")
+                .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
+                .addStatement("super.onViewCreated(view, savedInstanceState)")
+                .addCode(codeBlock.build())
                 .build());
     }
 
-    private void brewOnPostCreateMethod(TypeSpec.Builder builder) {
+    private void brewOnDestroyViewMethod(TypeSpec.Builder builder) {
+        final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        builder.addMethod(MethodSpec.methodBuilder("onDestroyView")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("$L.clear()", M_ON_CLICK)
+                .addStatement("$L.clear()", M_ON_ACTION_CLICK)
+                .addStatement("super.onDestroyView()")
+                .addCode(codeBlock.build())
+                .build());
+    }
+
+    private void brewOnActivityCreatedMethod(TypeSpec.Builder builder) {
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
         for (final OnActionClick onClick : mOnActionClick.values()) {
             for (final int viewId : onClick.value()) {
                 codeBlock.addStatement("emitOnActionClick$L()", viewId);
             }
         }
-        for (final OnClick onClick : mOnClick.values()) {
-            for (final int viewId : onClick.value()) {
-                codeBlock.addStatement("emitOnClick$L()", viewId);
-            }
-        }
-        builder.addMethod(MethodSpec.methodBuilder("onPostCreate")
+        builder.addMethod(MethodSpec.methodBuilder("onActivityCreated")
                 .addAnnotation(Override.class)
-                .addModifiers(Modifier.PROTECTED)
+                .addModifiers(Modifier.PUBLIC)
                 .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
-                .addStatement("super.onPostCreate(savedInstanceState)")
-                .addCode(codeBlock.build())
-                .build());
-    }
-
-    private void brewOnDestroyMethod(TypeSpec.Builder builder) {
-        builder.addMethod(MethodSpec.methodBuilder("onDestroy")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PROTECTED)
-                .addStatement("$L.clear()", M_ON_CLICK)
-                .addStatement("$L.clear()", M_ON_ACTION_CLICK)
-                .addStatement("super.onDestroy()")
-                .build());
-    }
-
-    private void brewFindAllViewsMethod(TypeSpec.Builder builder) {
-        final CodeBlock.Builder codeBlock = CodeBlock.builder();
-        for (final Map.Entry<Element, InjectView> entry : mInjectView.entrySet()) {
-            codeBlock.addStatement("$L.$L = $T.findById(this, $L)",
-                    M_DELEGATE, entry.getKey().getSimpleName(),
-                    ClassName.get("droidkit.view", "Views"),
-                    entry.getValue().value());
-        }
-        builder.addMethod(MethodSpec.methodBuilder("findAllViews")
-                .addModifiers(Modifier.PRIVATE)
+                .addStatement("super.onActivityCreated(savedInstanceState)")
                 .addCode(codeBlock.build())
                 .build());
     }
@@ -116,7 +98,7 @@ class ActivityMaker extends LifecycleMaker {
             final List<? extends VariableElement> parameters = method.getParameters();
             for (final int viewId : entry.getValue().value()) {
                 final CodeBlock.Builder codeBlock = CodeBlock.builder();
-                codeBlock.add("$L.put($T.findByIdOrThrow(this, $L), new View.OnClickListener() {\n",
+                codeBlock.add("$L.put($T.findByIdOrThrow(view, $L), new View.OnClickListener() {\n",
                         M_ON_CLICK, droidkitViews, viewId);
                 codeBlock.indent();
                 codeBlock.add("@Override\n");
@@ -136,6 +118,7 @@ class ActivityMaker extends LifecycleMaker {
                 codeBlock.add("});\n");
                 builder.addMethod(MethodSpec.methodBuilder("emitOnClick" + viewId)
                         .addModifiers(Modifier.PRIVATE)
+                        .addParameter(ClassName.get("android.view", "View"), "view")
                         .addCode(codeBlock.build())
                         .build());
             }
