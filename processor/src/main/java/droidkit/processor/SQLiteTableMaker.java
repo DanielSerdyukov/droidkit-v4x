@@ -271,8 +271,8 @@ class SQLiteTableMaker implements ClassMaker {
                         .indent()
                         .add(".newUpdate(uri)\n")
                         .add(".withValues(toContentValues(object))\n")
-                        .add(".withSelection(SQLiteProvider.WHERE_ID_EQ," +
-                                " new String[]{String.valueOf(object.$L)})\n", findPk().field)
+                        .add(".withSelection($T.WHERE_ID_EQ, new String[]{String.valueOf(object.$L)})\n",
+                                ClassName.get("droidkit.sqlite", "SQLiteProvider"), findPk().field)
                         .add(".build());\n")
                         .unindent()
                         .build())
@@ -286,8 +286,8 @@ class SQLiteTableMaker implements ClassMaker {
                 .addParameter(ClassName.get(ANDROID_CONTENT, CONTENT_RESOLVER), "db")
                 .addParameter(ClassName.get(ANDROID_NET, URI), "uri")
                 .addParameter(mGenericType, "object")
-                .addCode("db.delete(uri, SQLiteProvider.WHERE_ID_EQ," +
-                        " new String[]{String.valueOf(object.$L)});\n", findPk().field)
+                .addCode("db.delete(uri, $T.WHERE_ID_EQ, new String[]{String.valueOf(object.$L)});\n",
+                        ClassName.get("droidkit.sqlite", "SQLiteProvider"), findPk().field)
                 .build());
     }
 
@@ -303,8 +303,8 @@ class SQLiteTableMaker implements ClassMaker {
                         .add("operations.add(ContentProviderOperation\n")
                         .indent()
                         .add(".newDelete(uri)\n")
-                        .add(".withSelection(SQLiteProvider.WHERE_ID_EQ," +
-                                " new String[]{String.valueOf(object.$L)})\n", findPk().field)
+                        .add(".withSelection($T.WHERE_ID_EQ, new String[]{String.valueOf(object.$L)})\n",
+                                ClassName.get("droidkit.sqlite", "SQLiteProvider"), findPk().field)
                         .add(".build());\n")
                         .unindent()
                         .build())

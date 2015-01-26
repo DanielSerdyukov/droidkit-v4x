@@ -1,4 +1,4 @@
-package droidkit.sqlite;
+package droidkit.sqlite.mock;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -7,6 +7,7 @@ import droidkit.BuildConfig;
 import droidkit.annotation.SQLiteColumn;
 import droidkit.annotation.SQLiteObject;
 import droidkit.annotation.SQLitePk;
+import droidkit.sqlite.SQLiteProvider;
 
 /**
  * @author Daniel Serdyukov

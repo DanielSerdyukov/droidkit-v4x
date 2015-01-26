@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import droidkit.BuildConfig;
+import droidkit.sqlite.mock.User;
 
 /**
  * @author Daniel Serdyukov

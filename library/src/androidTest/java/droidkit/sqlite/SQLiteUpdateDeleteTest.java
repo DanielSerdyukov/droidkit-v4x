@@ -5,6 +5,7 @@ import android.test.ProviderTestCase2;
 import junit.framework.Assert;
 
 import droidkit.BuildConfig;
+import droidkit.sqlite.mock.User;
 
 /**
  * @author Daniel Serdyukov
