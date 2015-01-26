@@ -14,6 +14,18 @@ allprojects {
 }
 
 ext {
-    buildNumber = 40000 + (project.hasProperty("teamcity") ? Integer.parseInt(project.teamcity['build.number']) : 1)
-    versionName = '4.3.1'
+    buildNumber = makeBuildNumber()
+    versionName = makeVersionName()
+}
+
+String makeVersionName() {
+    return "4.4." + makeBuildNumber();
+}
+
+int makeBuildNumber() {
+    def buildNumber = 1;
+    if (project.hasProperty("teamcity")) {
+        buildNumber = Integer.parseInt(project.teamcity['build.number'])
+    }
+    return buildNumber;
 }

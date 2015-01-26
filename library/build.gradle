@@ -86,10 +86,9 @@ afterEvaluate { project ->
     uploadArchives {
         repositories {
             mavenDeployer {
-                /*repository(url: "https://api.bintray.com/maven/dvp-troy/droidkit/droidkit") {
+                repository(url: "https://api.bintray.com/maven/dvp-troy/droidkit/droidkit") {
                     authentication(userName: bintrayUser, password: bintrayKey)
-                }*/
-                repository(url: "file://${project.rootDir}/../maven")
+                }
                 pom.project {
                     issueManagement {
                         system 'github'

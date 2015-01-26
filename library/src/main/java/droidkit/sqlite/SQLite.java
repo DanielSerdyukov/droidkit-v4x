@@ -141,4 +141,8 @@ public class SQLite {
         return where(type).all();
     }
 
+    public <T> int truncate(@NonNull Class<T> type) {
+        return mDb.delete(acquireUri(type), null, null);
+    }
+
 }
