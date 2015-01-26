@@ -76,7 +76,7 @@ class LoaderCallbacksMaker implements ClassMaker {
         final JavaFileObject sourceFile = mEnv.getFiler()
                 .createSourceFile(javaFile.packageName + "." + spec.name, mOriginType);
         try (final Writer writer = new BufferedWriter(sourceFile.openWriter())) {
-            javaFile.emit(writer);
+            javaFile.emit(writer, "    ");
         }
         return javaFile;
     }
