@@ -1,6 +1,8 @@
 package droidkit.app;
 
 import android.app.Fragment;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -14,6 +16,10 @@ import android.widget.TextView;
 import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
+import droidkit.annotation.OnCreateLoader;
+import droidkit.annotation.OnLoadFinished;
+import droidkit.content.FakeLoader;
+import droidkit.content.Loaders;
 
 /**
  * @author Daniel Serdyukov
@@ -28,6 +34,8 @@ public class MainFragment extends Fragment {
     View mButton2;
 
     MenuItem mAddMenuItem;
+
+    Cursor mFakeCursor;
 
     @Nullable
     @Override
@@ -44,6 +52,7 @@ public class MainFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setHasOptionsMenu(true);
+        Loaders.init(getLoaderManager(), droidkit.test.R.id.fake_loader, Bundle.EMPTY, this);
     }
 
     @Override
@@ -70,6 +79,16 @@ public class MainFragment extends Fragment {
     @OnActionClick(droidkit.test.R.id.action_add)
     void onAddAction(MenuItem item) {
         mAddMenuItem = item;
+    }
+
+    @OnCreateLoader(droidkit.test.R.id.fake_loader)
+    Loader<Cursor> onCreateFakeLoader() {
+        return new FakeLoader(getActivity().getApplicationContext(), MainFragment.class.getSimpleName());
+    }
+
+    @OnLoadFinished(droidkit.test.R.id.fake_loader)
+    void onFakeLoad(Loader<Cursor> loader, Cursor result) {
+        mFakeCursor = result;
     }
 
 }

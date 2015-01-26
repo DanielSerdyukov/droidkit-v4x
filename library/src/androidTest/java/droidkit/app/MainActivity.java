@@ -1,9 +1,9 @@
 package droidkit.app;
 
-import android.app.Activity;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.Loader;
 import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
@@ -13,13 +13,13 @@ import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 import droidkit.annotation.OnCreateLoader;
 import droidkit.annotation.OnLoadFinished;
-import droidkit.content.FakeLoader;
 import droidkit.content.Loaders;
+import droidkit.content.SupportFakeLoader;
 
 /**
  * @author Daniel Serdyukov
  */
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity {
 
     @InjectView(droidkit.test.R.id.text1)
     TextView mText1;
@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
                     .add(droidkit.test.R.id.content, new MainFragment())
                     .commit();
         }
-        Loaders.init(getLoaderManager(), droidkit.test.R.id.fake_loader, Bundle.EMPTY, this);
+        Loaders.init(getSupportLoaderManager(), droidkit.test.R.id.fake_loader, Bundle.EMPTY, this);
     }
 
     @Override
@@ -71,9 +71,9 @@ public class MainActivity extends Activity {
         mFakeCursor = result;
     }
 
-    @OnCreateLoader(droidkit.test.R.id.fake_loader)
+    @OnCreateLoader(value = droidkit.test.R.id.fake_loader, support = true)
     Loader<Cursor> onCreateFakeLoader() {
-        return new FakeLoader(getApplicationContext(), MainActivity.class.getSimpleName());
+        return new SupportFakeLoader(getApplicationContext(), MainActivity.class.getSimpleName());
     }
 
 }

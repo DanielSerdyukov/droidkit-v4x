@@ -87,8 +87,7 @@ public class AnnotationProcessor extends AbstractProcessor {
                     if (mTypeUtils.isSubtype(originType, ANDROID_APP_ACTIVITY)) {
                         new ActivityMaker(processingEnv, originType).make();
                         classMakers.add(originType);
-                    } else if (mTypeUtils.isSubtype(originType, ANDROID_APP_FRAGMENT)
-                            || mTypeUtils.isSubtype(originType, ANDROID_SUPPORT_V4_APP_FRAGMENT)) {
+                    } else if (mTypeUtils.isSubtype(originType, ANDROID_APP_FRAGMENT)) {
                         new FragmentMaker(processingEnv, originType).make();
                         classMakers.add(originType);
                     }
@@ -120,7 +119,11 @@ public class AnnotationProcessor extends AbstractProcessor {
             checkInNestedClass(originType, "@OnCreateLoader not supported for nested classes");
             final OnCreateLoader onCreateLoader = element.getAnnotation(OnCreateLoader.class);
             for (final int loaderId : onCreateLoader.value()) {
-                new LoaderCallbacksMaker(processingEnv, originType, loaderId).make();
+                if (onCreateLoader.support()) {
+                    new SupportLoaderCallbacksMaker(processingEnv, originType, loaderId).make();
+                } else {
+                    new LoaderCallbacksMaker(processingEnv, originType, loaderId).make();
+                }
             }
         }
     }

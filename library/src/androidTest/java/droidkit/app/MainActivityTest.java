@@ -11,6 +11,7 @@ import android.view.View;
 import junit.framework.Assert;
 
 import droidkit.content.FakeLoader;
+import droidkit.content.SupportFakeLoader;
 import droidkit.database.CursorUtils;
 import droidkit.view.Views;
 
@@ -93,7 +94,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         Assert.assertNotNull(mActivity.mFakeCursor);
         Assert.assertTrue(mActivity.mFakeCursor.moveToFirst());
         Assert.assertEquals(MainActivity.class.getSimpleName(),
-                CursorUtils.getString(mActivity.mFakeCursor, FakeLoader.NAME));
+                CursorUtils.getString(mActivity.mFakeCursor, SupportFakeLoader.NAME));
+    }
+
+    public void testFragmentLoaderCallbacks() throws Exception {
+        final MainFragment fragment = (MainFragment) mActivity.getFragmentManager()
+                .findFragmentById(droidkit.test.R.id.content);
+        Assert.assertNotNull(fragment);
+        Assert.assertNotNull(fragment.mFakeCursor);
+        Assert.assertTrue(fragment.mFakeCursor.moveToFirst());
+        Assert.assertEquals(MainFragment.class.getSimpleName(),
+                CursorUtils.getString(fragment.mFakeCursor, FakeLoader.NAME));
     }
 
 }

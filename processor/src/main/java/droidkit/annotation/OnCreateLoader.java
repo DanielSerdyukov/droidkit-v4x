@@ -14,4 +14,6 @@ public @interface OnCreateLoader {
 
     int[] value();
 
+    boolean support() default false;
+
 }

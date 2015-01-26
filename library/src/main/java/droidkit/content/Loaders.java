@@ -13,6 +13,8 @@ public final class Loaders {
 
     private static final String LC = "$LC";
 
+    private static final String LCV4 = "$LCv4";
+
     private Loaders() {
     }
 
@@ -42,7 +44,7 @@ public final class Loaders {
         }
         try {
             android.support.v4.app.LoaderManager.LoaderCallbacks<D> callbacks =
-                    Dynamic.init(getCallbacksClassName(loaderId, delegate), delegate);
+                    Dynamic.init(getCallbacksClassName(loaderId, delegate, true), delegate);
             return lm.initLoader(loaderId, args, callbacks);
         } catch (DynamicException e) {
             throw new IllegalStateException("No such LoaderCallbacks", e);
@@ -58,7 +60,7 @@ public final class Loaders {
         }
         try {
             android.app.LoaderManager.LoaderCallbacks<D> callbacks =
-                    Dynamic.init(getCallbacksClassName(loaderId, delegate), delegate);
+                    Dynamic.init(getCallbacksClassName(loaderId, delegate, true), delegate);
             return lm.restartLoader(loaderId, args, callbacks);
         } catch (DynamicException e) {
             throw new IllegalStateException("No such LoaderCallbacks", e);
@@ -75,7 +77,7 @@ public final class Loaders {
         }
         try {
             android.support.v4.app.LoaderManager.LoaderCallbacks<D> callbacks =
-                    Dynamic.init(getCallbacksClassName(loaderId, delegate), delegate);
+                    Dynamic.init(getCallbacksClassName(loaderId, delegate, true), delegate);
             return lm.restartLoader(loaderId, args, callbacks);
         } catch (DynamicException e) {
             throw new IllegalStateException("No such LoaderCallbacks", e);
@@ -91,7 +93,11 @@ public final class Loaders {
     }
 
     private static String getCallbacksClassName(int loaderId, @NonNull Object delegate) {
-        return String.format("%s%s%d", delegate.getClass().getName(), LC, loaderId);
+        return getCallbacksClassName(loaderId, delegate, false);
+    }
+
+    private static String getCallbacksClassName(int loaderId, @NonNull Object delegate, boolean support) {
+        return String.format("%s%s%d", delegate.getClass().getName(), support ? LCV4 : LC, loaderId);
     }
 
 }

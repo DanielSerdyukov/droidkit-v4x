@@ -1,7 +1,5 @@
 package droidkit.processor;
 
-import android.annotation.SuppressLint;
-
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -60,11 +58,10 @@ class LoaderCallbacksMaker implements ClassMaker {
     }
 
     @Override
-    @SuppressLint("NewApi")
     public JavaFile make() throws Exception {
         mEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generate LoaderCallbacks @"
-                + mLoaderId + " implementation");
-        final String className = mOriginType.getSimpleName() + "$LC" + mLoaderId;
+                + mLoaderId + " implementation (" + mOriginType + ")");
+        final String className = mOriginType.getSimpleName() + getSuffix() + mLoaderId;
         final TypeSpec.Builder builder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
                 .addOriginatingElement(mOriginType)
@@ -82,6 +79,10 @@ class LoaderCallbacksMaker implements ClassMaker {
             javaFile.emit(writer);
         }
         return javaFile;
+    }
+
+    protected String getSuffix() {
+        return "$LC";
     }
 
     protected ClassName getLoaderVersion() {

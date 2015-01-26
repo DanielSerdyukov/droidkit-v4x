@@ -1,7 +1,5 @@
 package droidkit.processor;
 
-import android.annotation.SuppressLint;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -103,7 +101,6 @@ class LifecycleMaker implements ClassMaker {
     }
 
     @Override
-    @SuppressLint("NewApi")
     public JavaFile make() throws Exception {
         mEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generate " + mOriginType + " proxy");
         final TypeSpec.Builder builder = TypeSpec.classBuilder(mOriginType.getSimpleName() + PROXY)

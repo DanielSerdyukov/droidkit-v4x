@@ -5,16 +5,9 @@ targetCompatibility = 1.7
 
 version = rootProject.versionName
 
-final Properties localProperties = new Properties()
-localProperties.load(new FileInputStream("${project.rootDir}/local.properties"))
-localProperties.entrySet().each() { entry ->
-    project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
-}
-
 dependencies {
     compile 'com.google.guava:guava:18.0'
     compile files("${System.properties['java.home']}/../lib/tools.jar")
-    compile files(new File(project.ext["sdk.dir"], '/platforms/android-21/android.jar'))
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
