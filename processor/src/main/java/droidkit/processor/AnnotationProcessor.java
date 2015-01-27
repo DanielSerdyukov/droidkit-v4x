@@ -87,7 +87,8 @@ public class AnnotationProcessor extends AbstractProcessor {
                     if (mTypeUtils.isSubtype(originType, ANDROID_APP_ACTIVITY)) {
                         new ActivityMaker(processingEnv, originType).make();
                         classMakers.add(originType);
-                    } else if (mTypeUtils.isSubtype(originType, ANDROID_APP_FRAGMENT)) {
+                    } else if (mTypeUtils.isSubtype(originType, ANDROID_APP_FRAGMENT)
+                            || mTypeUtils.isSubtype(originType, ANDROID_SUPPORT_V4_APP_FRAGMENT)) {
                         new FragmentMaker(processingEnv, originType).make();
                         classMakers.add(originType);
                     }
