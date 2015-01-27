@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.14.+'
+        classpath 'com.android.tools.build:gradle:1.0.+'
     }
 }
 
@@ -14,8 +14,18 @@ allprojects {
 }
 
 ext {
-    compileSdkVersion = 21
-    buildToolsVersion = "21.1.0"
-    versionCode = 400001
-    versionName = "4.0.1"
+    buildNumber = makeBuildNumber()
+    versionName = makeVersionName()
+}
+
+String makeVersionName() {
+    return "4.4." + makeBuildNumber();
+}
+
+int makeBuildNumber() {
+    def buildNumber = 1;
+    if (project.hasProperty("teamcity")) {
+        buildNumber = Integer.parseInt(project.teamcity['build.number'])
+    }
+    return buildNumber;
 }

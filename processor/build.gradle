@@ -1,0 +1,18 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+version = rootProject.versionName
+
+dependencies {
+    compile 'com.google.guava:guava:18.0'
+    compile files("${System.properties['java.home']}/../lib/tools.jar")
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+jar { // FIXME: remove, when javapoet will be added to jcenter
+    from configurations.compile.findAll {
+        it.name.contains('javapoet')
+    }.collect { zipTree(it) }
+}

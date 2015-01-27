@@ -5,7 +5,7 @@ Gradle
 --------
 
     dependencies {
-        compile 'droidkit:droidkit:3.5.+'
+        compile 'droidkit:droidkit:4.1.+'
     }
 
 
