@@ -4,8 +4,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Daniel Serdyukov
@@ -61,18 +64,32 @@ public final class DynamicMethod {
     }
 
     @NonNull
-    public static Method find(@NonNull Class<?> clazz, @NonNull String name, Class<?>... argTypes)
+    public static Method find(@NonNull Class<?> type, @NonNull String name, Class<?>... argTypes)
             throws DynamicException {
         do {
-            final Method[] methods = clazz.getDeclaredMethods();
+            final Method[] methods = type.getDeclaredMethods();
             for (final Method method : methods) {
                 if (TextUtils.equals(name, method.getName())
                         && hasValidSignature(method.getParameterTypes(), argTypes)) {
                     return method;
                 }
             }
-        } while ((clazz = clazz.getSuperclass()) != null);
+        } while ((type = type.getSuperclass()) != null);
         throw new DynamicException("No such method " + name);
+    }
+
+    @NonNull
+    public static List<Method> annotatedWith(@NonNull Class<?> type, @NonNull Class<? extends Annotation> annotation) {
+        final List<Method> annotatedMethods = new ArrayList<>();
+        do {
+            final Method[] methods = type.getDeclaredMethods();
+            for (final Method method : methods) {
+                if (method.isAnnotationPresent(annotation)) {
+                    annotatedMethods.add(method);
+                }
+            }
+        } while ((type = type.getSuperclass()) != null);
+        return annotatedMethods;
     }
 
     @NonNull

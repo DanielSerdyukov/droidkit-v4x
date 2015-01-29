@@ -34,9 +34,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     public void testInjectView() throws Exception {
-        final View expected = Views.findById(mActivity, droidkit.test.R.id.text1);
+        View expected = Views.findById(mActivity, droidkit.test.R.id.text1);
         Assert.assertNotNull(expected);
         assertEquals(expected, mActivity.mText1);
+        expected = Views.findById(mActivity, droidkit.test.R.id.content);
+        Assert.assertNotNull(expected);
+        assertEquals(expected, mActivity.mMockFrame);
     }
 
     public void testOnClick() throws Exception {
@@ -105,6 +108,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         Assert.assertTrue(fragment.mFakeCursor.moveToFirst());
         Assert.assertEquals(MainFragment.class.getSimpleName(),
                 CursorUtils.getString(fragment.mFakeCursor, FakeLoader.NAME));
+    }
+
+    public void testOnEvent() throws Exception {
+        final MockEvent event = new MockEvent();
+        EventBus.post(event);
+        Assert.assertEquals(event, mActivity.mOnEvent);
+        Assert.assertEquals(event, mActivity.mMockFrame.mEvent);
     }
 
 }

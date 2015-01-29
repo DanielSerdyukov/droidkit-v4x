@@ -24,8 +24,8 @@ import droidkit.annotation.OnClick;
  */
 class FragmentMaker extends LifecycleMaker {
 
-    public FragmentMaker(ProcessingEnvironment env, Element element) {
-        super(env, element);
+    public FragmentMaker(ProcessingEnvironment env, Element element, boolean hasEventBus) {
+        super(env, element, hasEventBus);
     }
 
     @Override

@@ -57,9 +57,12 @@ class LifecycleMaker implements ClassMaker {
 
     final TypeUtils mTypeUtils;
 
-    public LifecycleMaker(ProcessingEnvironment env, Element element) {
+    final boolean mHasEventBus;
+
+    public LifecycleMaker(ProcessingEnvironment env, Element element, boolean hasEventBus) {
         mEnv = (JavacProcessingEnvironment) env;
         mOriginType = (TypeElement) element;
+        mHasEventBus = hasEventBus;
         mTypeUtils = new TypeUtils(mEnv);
         collectInjectionInfo();
     }
@@ -182,6 +185,9 @@ class LifecycleMaker implements ClassMaker {
         final ClassName mapEntry = ClassName.get("java.util", "Map", "Entry");
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
         codeBlock.addStatement("super.onResume()");
+        if (mHasEventBus) {
+            codeBlock.addStatement("$T$$Bus.register(this)", ClassName.get(mOriginType));
+        }
         codeBlock.beginControlFlow("for(final $T<View, View.OnClickListener> entry : $L.entrySet())",
                 mapEntry, M_ON_CLICK);
         codeBlock.addStatement("entry.getKey().setOnClickListener(entry.getValue())");
@@ -200,6 +206,9 @@ class LifecycleMaker implements ClassMaker {
                 mapEntry, M_ON_CLICK);
         codeBlock.addStatement("entry.getKey().setOnClickListener(null)");
         codeBlock.endControlFlow();
+        if (mHasEventBus) {
+            codeBlock.addStatement("$T$$Bus.unregister(this)", ClassName.get(mOriginType));
+        }
         codeBlock.addStatement("super.onPause()");
         builder.addMethod(MethodSpec.methodBuilder("onPause")
                 .addAnnotation(Override.class)

@@ -25,8 +25,8 @@ import droidkit.annotation.OnClick;
  */
 class ActivityMaker extends LifecycleMaker {
 
-    ActivityMaker(ProcessingEnvironment env, Element element) {
-        super(env, element);
+    public ActivityMaker(ProcessingEnvironment env, Element element, boolean hasEventBus) {
+        super(env, element, hasEventBus);
     }
 
     @Override
