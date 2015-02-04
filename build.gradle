@@ -26,6 +26,8 @@ int makeBuildNumber() {
     def buildNumber = 1;
     if (project.hasProperty("teamcity")) {
         buildNumber = Integer.parseInt(project.teamcity['build.number'])
+    } else if (project.hasProperty("build.number")) {
+        buildNumber = Integer.parseInt(project.properties['build.number'])
     }
     return buildNumber;
 }

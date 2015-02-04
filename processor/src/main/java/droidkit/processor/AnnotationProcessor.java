@@ -44,6 +44,7 @@ import droidkit.annotation.SQLiteObject;
 public class AnnotationProcessor extends AbstractProcessor {
 
     private static final List<Class<? extends Annotation>> METHOD_INJECTIONS = Arrays.asList(
+            InjectView.class,
             OnClick.class,
             OnActionClick.class
     );
