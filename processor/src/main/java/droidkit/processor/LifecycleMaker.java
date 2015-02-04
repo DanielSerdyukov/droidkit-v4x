@@ -30,7 +30,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 
@@ -45,8 +44,6 @@ class LifecycleMaker implements ClassMaker {
 
     private static final String PROXY = "$Proxy";
 
-    final Map<Element, InjectView> mInjectView = new LinkedHashMap<>();
-
     final Map<ExecutableElement, OnClick> mOnClick = new LinkedHashMap<>();
 
     final Map<ExecutableElement, OnActionClick> mOnActionClick = new LinkedHashMap<>();
@@ -57,33 +54,34 @@ class LifecycleMaker implements ClassMaker {
 
     final TypeUtils mTypeUtils;
 
-    final boolean mHasEventBus;
+    boolean mHasEventBus;
 
-    public LifecycleMaker(ProcessingEnvironment env, Element element, boolean hasEventBus) {
+    String mViewInjectorName;
+
+    public LifecycleMaker(ProcessingEnvironment env, Element element) {
         mEnv = (JavacProcessingEnvironment) env;
         mOriginType = (TypeElement) element;
-        mHasEventBus = hasEventBus;
         mTypeUtils = new TypeUtils(mEnv);
         collectInjectionInfo();
+    }
+
+    public LifecycleMaker setHasEventBus(boolean hasEventBus) {
+        mHasEventBus = hasEventBus;
+        return this;
+    }
+
+    public LifecycleMaker setViewInjectorName(String name) {
+        mViewInjectorName = name;
+        return this;
     }
 
     private void collectInjectionInfo() {
         final List<? extends Element> elements = mOriginType.getEnclosedElements();
         for (final Element element : elements) {
-            if (ElementKind.FIELD == element.getKind()) {
-                processInjectView(element);
-            } else if (ElementKind.METHOD == element.getKind()) {
+            if (ElementKind.METHOD == element.getKind()) {
                 processOnClick(element);
                 processOnActionClick(element);
             }
-        }
-    }
-
-    private void processInjectView(Element element) {
-        final InjectView annotation = element.getAnnotation(InjectView.class);
-        if (annotation != null) {
-            mInjectView.put(element, annotation);
-            mTypeUtils.<JCTree.JCVariableDecl>asTree(element).mods.flags &= ~Flags.PRIVATE;
         }
     }
 
@@ -263,6 +261,23 @@ class LifecycleMaker implements ClassMaker {
                         .build());
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final LifecycleMaker that = (LifecycleMaker) o;
+        return !(mOriginType != null ? !mOriginType.equals(that.mOriginType) : that.mOriginType != null);
+    }
+
+    @Override
+    public int hashCode() {
+        return mOriginType != null ? mOriginType.hashCode() : 0;
     }
 
 }

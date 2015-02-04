@@ -1,0 +1,18 @@
+apply plugin: 'sonar-runner'
+
+sonarRunner {
+    sonarProperties {
+        property 'sonar.projectKey', 'droidkit'
+        property 'sonar.projectName', 'DroidKit'
+        property 'sonar.projectVersion', "${android.defaultConfig.versionName}"
+        property 'sonar.sources', 'src/main/java'
+        property 'sonar.binaries', 'build/outputs/classes'
+
+        property 'sonar.host.url', "${project.properties['sonar.host.url']}"
+        property 'sonar.login', "${project.properties['sonar.login']}"
+        property 'sonar.password', "${project.properties['sonar.password']}"
+        property 'sonar.jdbc.url', "${project.properties['sonar.jdbc.url']}"
+        property 'sonar.jdbc.username', "${project.properties['sonar.jdbc.username']}"
+        property 'sonar.jdbc.password', "${project.properties['sonar.jdbc.password']}"
+    }
+}

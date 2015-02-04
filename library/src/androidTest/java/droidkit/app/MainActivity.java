@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.Loader;
 import android.view.Menu;
 import android.view.View;
-import android.widget.TextView;
 
 import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
@@ -23,9 +22,6 @@ import droidkit.widget.MockFrameLayout;
  * @author Daniel Serdyukov
  */
 public class MainActivity extends FragmentActivity {
-
-    @InjectView(droidkit.test.R.id.text1)
-    TextView mText1;
 
     @InjectView(droidkit.test.R.id.content)
     MockFrameLayout mMockFrame;

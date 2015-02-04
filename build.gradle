@@ -19,7 +19,7 @@ ext {
 }
 
 String makeVersionName() {
-    return "4.4." + makeBuildNumber();
+    return "4.5." + makeBuildNumber();
 }
 
 int makeBuildNumber() {

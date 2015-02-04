@@ -16,7 +16,6 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 
-import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 
@@ -25,8 +24,8 @@ import droidkit.annotation.OnClick;
  */
 class ActivityMaker extends LifecycleMaker {
 
-    public ActivityMaker(ProcessingEnvironment env, Element element, boolean hasEventBus) {
-        super(env, element, hasEventBus);
+    public ActivityMaker(ProcessingEnvironment env, Element element) {
+        super(env, element);
     }
 
     @Override
@@ -38,29 +37,36 @@ class ActivityMaker extends LifecycleMaker {
         brewOnResumeMethod(builder, Modifier.PROTECTED);
         brewOnPauseMethod(builder, Modifier.PROTECTED);
         brewOnDestroyMethod(builder);
-        brewFindAllViewsMethod(builder);
         brewOnActionClickEmitters(builder);
         brewOnClickEmitters(builder);
     }
 
     private void brewSetContentView1Method(TypeSpec.Builder builder) {
+        final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        if (!StringUtils.isEmpty(mViewInjectorName)) {
+            codeBlock.addStatement("$L.inject(this, this)", mViewInjectorName);
+        }
         builder.addMethod(MethodSpec.methodBuilder("setContentView")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(Integer.TYPE, "layoutResId")
                         .build())
                 .addStatement("super.setContentView(layoutResId)")
-                .addStatement("findAllViews()")
+                .addCode(codeBlock.build())
                 .build());
     }
 
     private void brewSetContentView2Method(TypeSpec.Builder builder) {
+        final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        if (!StringUtils.isEmpty(mViewInjectorName)) {
+            codeBlock.addStatement("$L.inject(view, this)", mViewInjectorName);
+        }
         builder.addMethod(MethodSpec.methodBuilder("setContentView")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ClassName.get("android.view", "View"), "view")
                 .addStatement("super.setContentView(view)")
-                .addStatement("findAllViews()")
+                .addCode(codeBlock.build())
                 .build());
     }
 
@@ -92,20 +98,6 @@ class ActivityMaker extends LifecycleMaker {
                 .addStatement("$L.clear()", M_ON_CLICK)
                 .addStatement("$L.clear()", M_ON_ACTION_CLICK)
                 .addStatement("super.onDestroy()")
-                .build());
-    }
-
-    private void brewFindAllViewsMethod(TypeSpec.Builder builder) {
-        final CodeBlock.Builder codeBlock = CodeBlock.builder();
-        for (final Map.Entry<Element, InjectView> entry : mInjectView.entrySet()) {
-            codeBlock.addStatement("$L.$L = $T.findById(this, $L)",
-                    M_DELEGATE, entry.getKey().getSimpleName(),
-                    ClassName.get("droidkit.view", "Views"),
-                    entry.getValue().value());
-        }
-        builder.addMethod(MethodSpec.methodBuilder("findAllViews")
-                .addModifiers(Modifier.PRIVATE)
-                .addCode(codeBlock.build())
                 .build());
     }
 

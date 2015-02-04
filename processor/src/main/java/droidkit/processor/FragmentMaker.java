@@ -15,7 +15,6 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 
-import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 
@@ -24,8 +23,8 @@ import droidkit.annotation.OnClick;
  */
 class FragmentMaker extends LifecycleMaker {
 
-    public FragmentMaker(ProcessingEnvironment env, Element element, boolean hasEventBus) {
-        super(env, element, hasEventBus);
+    public FragmentMaker(ProcessingEnvironment env, Element element) {
+        super(env, element);
     }
 
     @Override
@@ -42,11 +41,8 @@ class FragmentMaker extends LifecycleMaker {
 
     private void brewOnViewCreatedMethod(TypeSpec.Builder builder) {
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
-        for (final Map.Entry<Element, InjectView> entry : mInjectView.entrySet()) {
-            codeBlock.addStatement("$L.$L = $T.findById(view, $L)",
-                    M_DELEGATE, entry.getKey().getSimpleName(),
-                    ClassName.get("droidkit.view", "Views"),
-                    entry.getValue().value());
+        if (!StringUtils.isEmpty(mViewInjectorName)) {
+            codeBlock.addStatement("$L.inject(view, this)", mViewInjectorName);
         }
         for (final OnClick onClick : mOnClick.values()) {
             for (final int viewId : onClick.value()) {

@@ -13,6 +13,7 @@ import junit.framework.Assert;
 import droidkit.content.FakeLoader;
 import droidkit.content.SupportFakeLoader;
 import droidkit.database.CursorUtils;
+import droidkit.view.MockView;
 import droidkit.view.Views;
 
 /**
@@ -34,12 +35,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     public void testInjectView() throws Exception {
-        View expected = Views.findById(mActivity, droidkit.test.R.id.text1);
-        Assert.assertNotNull(expected);
-        assertEquals(expected, mActivity.mText1);
-        expected = Views.findById(mActivity, droidkit.test.R.id.content);
-        Assert.assertNotNull(expected);
-        assertEquals(expected, mActivity.mMockFrame);
+        final View contentView = Views.findById(mActivity, droidkit.test.R.id.content);
+        Assert.assertNotNull(contentView);
+        assertEquals(contentView, mActivity.mMockFrame);
+        final MockView mockView = Views.findById(mActivity, droidkit.test.R.id.mock_view);
+        Assert.assertNotNull(mockView);
+        Assert.assertNotNull(mockView.mText1);
     }
 
     public void testOnClick() throws Exception {
