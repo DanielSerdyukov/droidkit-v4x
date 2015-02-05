@@ -44,8 +44,8 @@ android {
 }
 
 dependencies {
+    compile 'com.squareup:javapoet:1.0.+'
     compile 'com.android.support:support-v13:21.0.+'
-    compile 'com.google.guava:guava:18.0' // FIXME: remove, when javapoet will be added to jcenter
     compile files("${project.rootDir}/processor/build/libs/processor-${project.versionName}.jar")
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.+'
     androidTestCompile 'com.android.support.test:testing-support-lib:0.+'

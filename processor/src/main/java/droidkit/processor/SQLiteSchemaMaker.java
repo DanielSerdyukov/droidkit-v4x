@@ -4,12 +4,12 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 
 import java.io.BufferedWriter;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +29,7 @@ class SQLiteSchemaMaker implements ClassMaker {
 
     private static final String SCHEMA_IMPL = "SQLiteSchemaImpl";
 
-    private final Map<Type, JavaFile> mTables = new HashMap<>();
+    private final Map<TypeName, JavaFile> mTables = new HashMap<>();
 
     private final JavacProcessingEnvironment mEnv;
 
@@ -37,7 +37,7 @@ class SQLiteSchemaMaker implements ClassMaker {
         mEnv = (JavacProcessingEnvironment) env;
     }
 
-    public void put(Type type, JavaFile javaFile) {
+    public void put(TypeName type, JavaFile javaFile) {
         mTables.put(type, javaFile);
     }
 
@@ -55,7 +55,7 @@ class SQLiteSchemaMaker implements ClassMaker {
         final JavaFileObject sourceFile = mEnv.getFiler()
                 .createSourceFile(javaFile.packageName + "." + spec.name);
         try (final Writer writer = new BufferedWriter(sourceFile.openWriter())) {
-            javaFile.emit(writer, "    ");
+            javaFile.writeTo(writer);
         }
         return javaFile;
     }
@@ -67,7 +67,7 @@ class SQLiteSchemaMaker implements ClassMaker {
 
     private void brewOnCreateMethod(TypeSpec.Builder builder) {
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
-        for (final Type type : mTables.keySet()) {
+        for (final TypeName type : mTables.keySet()) {
             codeBlock.addStatement("SQLite.acquireTable($T.class).create(db)", type);
         }
         builder.addMethod(MethodSpec.methodBuilder("onCreate")
@@ -81,7 +81,7 @@ class SQLiteSchemaMaker implements ClassMaker {
 
     private void brewOnUpgradeMethod(TypeSpec.Builder builder) {
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
-        for (final Type type : mTables.keySet()) {
+        for (final TypeName type : mTables.keySet()) {
             codeBlock.addStatement("SQLite.acquireTable($T.class).upgrade(db, oldVersion, newVersion)", type);
         }
         builder.addMethod(MethodSpec.methodBuilder("onUpgrade")

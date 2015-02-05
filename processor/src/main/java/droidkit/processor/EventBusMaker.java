@@ -4,13 +4,12 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.Types;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 
 import java.io.BufferedWriter;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +63,7 @@ public class EventBusMaker implements ClassMaker {
         final JavaFileObject sourceFile = mEnv.getFiler()
                 .createSourceFile(javaFile.packageName + "." + spec.name, mOriginType);
         try (final Writer writer = new BufferedWriter(sourceFile.openWriter())) {
-            javaFile.emit(writer, "    ");
+            javaFile.writeTo(writer);
         }
         return javaFile;
     }
@@ -72,7 +71,7 @@ public class EventBusMaker implements ClassMaker {
     private void brewRegisterMethod(TypeSpec.Builder builder) {
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
         for (final ExecutableElement method : mMethods) {
-            final Type eventType = Types.get(method.getParameters().get(0).asType());
+            final TypeName eventType = TypeName.get(method.getParameters().get(0).asType());
             codeBlock.add("register(subscriber, $T.class, new $T() {\n", eventType,
                     ClassName.get("droidkit.app", "EventHandler"));
             codeBlock.indent();

@@ -27,7 +27,7 @@ import droidkit.annotation.InjectView;
 /**
  * @author Daniel Serdyukov
  */
-public class ViewInjectorMaker implements ClassMaker {
+class ViewInjectorMaker implements ClassMaker {
 
     private static final String VIEW_INJECTOR = "$ViewInjector";
 
@@ -69,7 +69,7 @@ public class ViewInjectorMaker implements ClassMaker {
         final JavaFileObject sourceFile = mEnv.getFiler()
                 .createSourceFile(javaFile.packageName + "." + spec.name, mOriginType);
         try (final Writer writer = new BufferedWriter(sourceFile.openWriter())) {
-            javaFile.emit(writer, "    ");
+            javaFile.writeTo(writer);
         }
         return javaFile;
     }

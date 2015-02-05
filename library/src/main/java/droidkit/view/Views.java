@@ -1,6 +1,7 @@
 package droidkit.view;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.res.Resources;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -28,11 +29,19 @@ public final class Views {
     }
 
     @NonNull
+    @SuppressWarnings("unchecked")
+    public static <T extends View> T findById(@NonNull Dialog root, @IdRes int viewId) {
+        return (T) root.findViewById(viewId);
+    }
+
+    @NonNull
     public static <T extends View> T findById(@NonNull Object root, @IdRes int viewId) {
         if (root instanceof View) {
             return findById((View) root, viewId);
         } else if (root instanceof Activity) {
             return findById((Activity) root, viewId);
+        } else if (root instanceof Dialog) {
+            return findById((Dialog) root, viewId);
         }
         throw new IllegalArgumentException("root must be instance of Activity or ViewGroup");
     }
@@ -49,12 +58,21 @@ public final class Views {
         return checkNonNull(root, root.findViewById(viewId), root.getResources(), viewId);
     }
 
+
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <T extends View> T findByIdOrThrow(@NonNull Dialog root, @IdRes int viewId) {
+        return checkNonNull(root, root.findViewById(viewId), root.getContext().getResources(), viewId);
+    }
+
     @NonNull
     public static <T extends View> T findByIdOrThrow(@NonNull Object root, @IdRes int viewId) {
         if (root instanceof View) {
             return findByIdOrThrow((View) root, viewId);
         } else if (root instanceof Activity) {
             return findByIdOrThrow((Activity) root, viewId);
+        } else if (root instanceof Dialog) {
+            return findByIdOrThrow((Dialog) root, viewId);
         }
         throw new IllegalArgumentException("root must be instance of Activity or ViewGroup");
     }

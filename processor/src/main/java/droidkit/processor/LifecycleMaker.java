@@ -5,15 +5,15 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.Types;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 
 import java.io.BufferedWriter;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +107,7 @@ class LifecycleMaker implements ClassMaker {
         final TypeSpec.Builder builder = TypeSpec.classBuilder(mOriginType.getSimpleName() + PROXY)
                 .addModifiers(Modifier.PUBLIC)
                 .addOriginatingElement(mOriginType)
-                .superclass(Types.get(mOriginType.getSuperclass()));
+                .superclass(TypeName.get(mOriginType.getSuperclass()));
         brewFields(builder);
         brewMethods(builder);
         final TypeSpec spec = builder.build();
@@ -116,9 +116,8 @@ class LifecycleMaker implements ClassMaker {
                 .build();
         final JavaFileObject sourceFile = mEnv.getFiler()
                 .createSourceFile(javaFile.packageName + "." + spec.name, mOriginType);
-
         try (final Writer writer = new BufferedWriter(sourceFile.openWriter())) {
-            javaFile.emit(writer, "    ");
+            javaFile.writeTo(writer);
         }
         mTypeUtils.extend(mOriginType, spec.name);
         return javaFile;
@@ -131,7 +130,7 @@ class LifecycleMaker implements ClassMaker {
     }
 
     protected void brewDelegateField(TypeSpec.Builder builder) {
-        final Type origin = Types.get(mOriginType.asType());
+        final TypeName origin = TypeName.get(mOriginType.asType());
         builder.addField(FieldSpec.builder(origin, M_DELEGATE, Modifier.PRIVATE, Modifier.FINAL)
                 .initializer("($T) this", origin)
                 .build());
@@ -141,7 +140,7 @@ class LifecycleMaker implements ClassMaker {
         final ClassName view = ClassName.get("android.view", "View");
         final ClassName viewOnClickListener = ClassName.get("android.view", "View", "OnClickListener");
         builder.addField(FieldSpec
-                .builder(Types.parameterizedType(ClassName.get("java.util", "Map"),
+                .builder(ParameterizedTypeName.get(ClassName.get("java.util", "Map"),
                         view, viewOnClickListener), M_ON_CLICK, Modifier.PRIVATE, Modifier.FINAL)
                 .initializer("new $T<>()", ClassName.get("java.util", "HashMap"))
                 .build());
@@ -151,7 +150,7 @@ class LifecycleMaker implements ClassMaker {
         final ClassName sparseArray = ClassName.get("android.util", "SparseArray");
         final ClassName onMenuItemClickListener = ClassName.get("android.view", "MenuItem", "OnMenuItemClickListener");
         builder.addField(FieldSpec
-                .builder(Types.parameterizedType(sparseArray, onMenuItemClickListener),
+                .builder(ParameterizedTypeName.get(sparseArray, onMenuItemClickListener),
                         M_ON_ACTION_CLICK, Modifier.PRIVATE, Modifier.FINAL)
                 .initializer("new $T<>()", sparseArray)
                 .build());

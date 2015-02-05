@@ -1,8 +1,8 @@
 package droidkit.processor;
 
-import com.squareup.javapoet.Types;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,26 +15,40 @@ final class SQLiteColumnSpec {
 
     static final String ROWID = "_id";
 
-    private static final Map<Type, String> JAVA_TO_SQLITE_TYPE;
+    private static final Map<String, String> JAVA_TO_SQLITE_TYPE;
 
-    static {
-        JAVA_TO_SQLITE_TYPE = new HashMap<>();
-        JAVA_TO_SQLITE_TYPE.put(Integer.TYPE, "INTEGER");
-        JAVA_TO_SQLITE_TYPE.put(Long.TYPE, "INTEGER");
-        JAVA_TO_SQLITE_TYPE.put(Float.TYPE, "REAL");
-        JAVA_TO_SQLITE_TYPE.put(Double.TYPE, "REAL");
-        JAVA_TO_SQLITE_TYPE.put(Boolean.TYPE, "INTEGER");
-    }
+    private static final Map<String, String> CURSOR_TO_JAVA_TYPE;
 
-    private static final Map<Type, String> CURSOR_TO_JAVA_TYPE;
+    private static final String BYTE_ARRAY = "byte[]";
+
+    private static final String INTEGER = "INTEGER";
+
+    private static final String REAL = "REAL";
+
+    private static final String TEXT = "TEXT";
+
+    private static final String BLOB = "BLOB";
 
     static {
         CURSOR_TO_JAVA_TYPE = new HashMap<>();
-        CURSOR_TO_JAVA_TYPE.put(Integer.TYPE, "droidkit.database.CursorUtils.getInt(cursor, $S)");
-        CURSOR_TO_JAVA_TYPE.put(Long.TYPE, "droidkit.database.CursorUtils.getLong(cursor, $S)");
-        CURSOR_TO_JAVA_TYPE.put(Float.TYPE, "droidkit.database.CursorUtils.getFloat(cursor, $S)");
-        CURSOR_TO_JAVA_TYPE.put(Double.TYPE, "droidkit.database.CursorUtils.getDouble(cursor, $S)");
-        CURSOR_TO_JAVA_TYPE.put(Boolean.TYPE, "droidkit.database.CursorUtils.getBoolean(cursor, $S)");
+        CURSOR_TO_JAVA_TYPE.put(TypeName.INT.toString(), "$T.getInt(cursor, $S)");
+        CURSOR_TO_JAVA_TYPE.put(TypeName.LONG.toString(), "$T.getLong(cursor, $S)");
+        CURSOR_TO_JAVA_TYPE.put(TypeName.FLOAT.toString(), "$T.getFloat(cursor, $S)");
+        CURSOR_TO_JAVA_TYPE.put(TypeName.DOUBLE.toString(), "$T.getDouble(cursor, $S)");
+        CURSOR_TO_JAVA_TYPE.put(TypeName.BOOLEAN.toString(), "$T.getBoolean(cursor, $S)");
+        CURSOR_TO_JAVA_TYPE.put(ClassName.get(String.class).toString(), "$T.getString(cursor, $S)");
+        CURSOR_TO_JAVA_TYPE.put(BYTE_ARRAY, "$T.getBlob(cursor, $S)");
+    }
+
+    static {
+        JAVA_TO_SQLITE_TYPE = new HashMap<>();
+        JAVA_TO_SQLITE_TYPE.put(TypeName.INT.toString(), INTEGER);
+        JAVA_TO_SQLITE_TYPE.put(TypeName.LONG.toString(), INTEGER);
+        JAVA_TO_SQLITE_TYPE.put(TypeName.FLOAT.toString(), REAL);
+        JAVA_TO_SQLITE_TYPE.put(TypeName.DOUBLE.toString(), REAL);
+        JAVA_TO_SQLITE_TYPE.put(TypeName.BOOLEAN.toString(), INTEGER);
+        JAVA_TO_SQLITE_TYPE.put(ClassName.get(String.class).toString(), TEXT);
+        JAVA_TO_SQLITE_TYPE.put(BYTE_ARRAY, BLOB);
     }
 
     private static final String[] CONFLICT_VALUES = new String[]{
@@ -50,7 +64,7 @@ final class SQLiteColumnSpec {
 
     final String name;
 
-    final Type type;
+    final TypeName type;
 
     final boolean pk;
 
@@ -71,37 +85,37 @@ final class SQLiteColumnSpec {
     SQLiteColumnSpec(String name, Element element, int conflictClause) {
         this.field = element != null ? element.getSimpleName().toString() : null;
         this.name = StringUtils.nonEmpty(name, field);
-        this.type = element == null ? Long.TYPE : Types.get(element.asType());
+        this.type = element == null ? TypeName.LONG : TypeName.get(element.asType());
         this.pk = ROWID.equals(this.name);
         this.conflictClause = conflictClause;
     }
 
-    static String toSQLiteType(Type type) {
-        String sqliteType = JAVA_TO_SQLITE_TYPE.get(type);
+    static String toSQLiteType(TypeName typeName) {
+        final String type = typeName.toString();
+        final String sqliteType = JAVA_TO_SQLITE_TYPE.get(type);
         if (StringUtils.isEmpty(sqliteType)) {
-            if (type.getTypeName().equals("byte[]")) {
-                return "BLOB";
-            }
-            return "TEXT";
-        }
-        return sqliteType;
-    }
-
-    static String toCursorType(Type type) {
-        String sqliteType = CURSOR_TO_JAVA_TYPE.get(type);
-        if (StringUtils.isEmpty(sqliteType)) {
-            if (type.getTypeName().equals("java.lang.String")) {
-                return "droidkit.database.CursorUtils.getString(cursor, $S)";
-            } else if (type.getTypeName().equals("byte[]")) {
-                return "droidkit.database.CursorUtils.getBlob(cursor, $S)";
-            }
             throw new RuntimeException("Unsupported column type '" + type + "'");
         }
         return sqliteType;
     }
 
-    private static void checkPkType(boolean pk, Type type) {
-        if (pk && !Long.TYPE.equals(type)) {
+    static String toCursorType(TypeName typeName) {
+        final String type = typeName.toString();
+        final String sqliteType = CURSOR_TO_JAVA_TYPE.get(type);
+        if (StringUtils.isEmpty(sqliteType)) {
+            /*if (typeName.getTypeName().equals("java.lang.String")) {
+                return "droidkit.database.CursorUtils.getString(cursor, $S)";
+            }*/
+            /*if (BYTE_ARRAY.equals(type)) {
+                return "$T.getBlob(cursor, $S)";
+            }*/
+            throw new RuntimeException("Unsupported cursor type '" + type + "'");
+        }
+        return sqliteType;
+    }
+
+    private static void checkPkType(boolean pk, TypeName type) {
+        if (pk && TypeName.LONG != type) {
             throw new RuntimeException("@SQLitePk must be long type");
         }
     }

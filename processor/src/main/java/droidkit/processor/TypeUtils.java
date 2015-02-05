@@ -1,13 +1,10 @@
 package droidkit.processor;
 
-import com.squareup.javapoet.Types;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.model.JavacTypes;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
-
-import java.lang.reflect.Type;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeMirror;
@@ -27,10 +24,6 @@ final class TypeUtils {
         mJavacTypes = env.getTypeUtils();
         mJavacElements = env.getElementUtils();
         mTreeMaker = TreeMaker.instance(env.getContext());
-    }
-
-    Type asType(String className) {
-        return Types.get(mJavacElements.getTypeElement(className).asType());
     }
 
     @SuppressWarnings("unchecked")

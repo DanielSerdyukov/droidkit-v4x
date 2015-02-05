@@ -23,8 +23,12 @@ import droidkit.annotation.OnClick;
  */
 class FragmentMaker extends LifecycleMaker {
 
+    private final boolean mIsDialogFragment;
+
     public FragmentMaker(ProcessingEnvironment env, Element element) {
         super(env, element);
+        mIsDialogFragment = mTypeUtils.isSubtype(mOriginType, "android.app.DialogFragment") ||
+                mTypeUtils.isSubtype(mOriginType, "android.support.v4.app.DialogFragment");
     }
 
     @Override
@@ -44,9 +48,11 @@ class FragmentMaker extends LifecycleMaker {
         if (!StringUtils.isEmpty(mViewInjectorName)) {
             codeBlock.addStatement("$L.inject(view, this)", mViewInjectorName);
         }
-        for (final OnClick onClick : mOnClick.values()) {
-            for (final int viewId : onClick.value()) {
-                codeBlock.addStatement("emitOnClick$L(view)", viewId);
+        if (!mIsDialogFragment) {
+            for (final OnClick onClick : mOnClick.values()) {
+                for (final int viewId : onClick.value()) {
+                    codeBlock.addStatement("emitOnClick$L(view)", viewId);
+                }
             }
         }
         builder.addMethod(MethodSpec.methodBuilder("onViewCreated")
@@ -73,6 +79,14 @@ class FragmentMaker extends LifecycleMaker {
 
     private void brewOnActivityCreatedMethod(TypeSpec.Builder builder) {
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        if (mIsDialogFragment) {
+            codeBlock.addStatement("final $T dialog = getDialog()", ClassName.get("android.app", "Dialog"));
+            for (final OnClick onClick : mOnClick.values()) {
+                for (final int viewId : onClick.value()) {
+                    codeBlock.addStatement("emitOnClick$L(dialog)", viewId);
+                }
+            }
+        }
         for (final OnActionClick onClick : mOnActionClick.values()) {
             for (final int viewId : onClick.value()) {
                 codeBlock.addStatement("emitOnActionClick$L()", viewId);
@@ -94,7 +108,7 @@ class FragmentMaker extends LifecycleMaker {
             final List<? extends VariableElement> parameters = method.getParameters();
             for (final int viewId : entry.getValue().value()) {
                 final CodeBlock.Builder codeBlock = CodeBlock.builder();
-                codeBlock.add("$L.put($T.findByIdOrThrow(view, $L), new View.OnClickListener() {\n",
+                codeBlock.add("$L.put($T.findByIdOrThrow(root, $L), new View.OnClickListener() {\n",
                         M_ON_CLICK, droidkitViews, viewId);
                 codeBlock.indent();
                 codeBlock.add("@Override\n");
@@ -114,7 +128,8 @@ class FragmentMaker extends LifecycleMaker {
                 codeBlock.add("});\n");
                 builder.addMethod(MethodSpec.methodBuilder("emitOnClick" + viewId)
                         .addModifiers(Modifier.PRIVATE)
-                        .addParameter(ClassName.get("android.view", "View"), "view")
+                        .addParameter(mIsDialogFragment ? ClassName.get("android.app", "Dialog") :
+                                ClassName.get("android.view", "View"), "root")
                         .addCode(codeBlock.build())
                         .build());
             }

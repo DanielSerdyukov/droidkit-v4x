@@ -5,8 +5,8 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.Types;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
@@ -76,7 +76,7 @@ class LoaderCallbacksMaker implements ClassMaker {
         final JavaFileObject sourceFile = mEnv.getFiler()
                 .createSourceFile(javaFile.packageName + "." + spec.name, mOriginType);
         try (final Writer writer = new BufferedWriter(sourceFile.openWriter())) {
-            javaFile.emit(writer, "    ");
+            javaFile.writeTo(writer);
         }
         return javaFile;
     }
@@ -149,13 +149,13 @@ class LoaderCallbacksMaker implements ClassMaker {
     }
 
     private void brewFields(TypeSpec.Builder builder) {
-        builder.addField(Types.get(mOriginType.asType()), M_DELEGATE, Modifier.PRIVATE, Modifier.FINAL);
+        builder.addField(TypeName.get(mOriginType.asType()), M_DELEGATE, Modifier.PRIVATE, Modifier.FINAL);
     }
 
     private void brewConstructor(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(Types.get(mOriginType.asType()), "delegate")
+                .addParameter(TypeName.get(mOriginType.asType()), "delegate")
                 .addStatement("$L = delegate", M_DELEGATE)
                 .build());
     }
