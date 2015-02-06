@@ -46,7 +46,7 @@ android {
 dependencies {
     compile 'com.squareup:javapoet:1.0.+'
     compile 'com.android.support:support-v13:21.0.+'
-    compile files("${project.rootDir}/processor/build/libs/processor-${project.versionName}.jar")
+    compile files("../processor/build/libs/processor.jar")
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.+'
     androidTestCompile 'com.android.support.test:testing-support-lib:0.+'
 }
@@ -58,10 +58,6 @@ task buildProcessor(type: GradleBuild) {
 
 tasks.preBuild {
     dependsOn buildProcessor
-}
-
-if (project.hasProperty("sonar.host.url")) {
-    apply from: 'sonar.gradle'
 }
 
 if (project.hasProperty("bintrayUser")) {
