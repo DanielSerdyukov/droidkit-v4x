@@ -20,7 +20,7 @@ ext {
 
 String makeVersionName() {
     def buildNumber = makeBuildNumber();
-    if (project.hasProperty("jenkins")) {
+    if (project.hasProperty("build.major") && project.hasProperty("build.minor")) {
         def majorVersion = project.properties['build.major']
         def minorVersion = project.properties['build.minor']
         return "${majorVersion}.${minorVersion}.${buildNumber}"
@@ -29,7 +29,7 @@ String makeVersionName() {
 }
 
 int makeBuildNumber() {
-    if (project.hasProperty("jenkins")) {
+    if (project.hasProperty("build.number")) {
         return Integer.parseInt(project.properties['build.number'])
     }
     return 1;
