@@ -1,9 +1,23 @@
 apply plugin: 'java'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+version = file('../version').text.trim()
+
+repositories {
+    jcenter()
+}
 
 dependencies {
-    compile 'com.squareup:javapoet:1.0.+'
     compile files("${System.properties['java.home']}/../lib/tools.jar")
+    compile files("../annotations/build/libs/annotations-${version}.jar")
+    compile 'com.squareup:javapoet:1.0.+'
+    testCompile 'junit:junit:4.+'
+}
+
+task buildAnnotations(type: GradleBuild) {
+    dir = file('../annotations')
+    tasks = ['assemble']
+}
+
+tasks.assemble {
+    dependsOn buildAnnotations
 }

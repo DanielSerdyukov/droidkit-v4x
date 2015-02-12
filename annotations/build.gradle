@@ -1,0 +1,11 @@
+apply plugin: 'java'
+
+version = file('../version').text.trim()
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+
+}
