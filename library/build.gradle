@@ -1,0 +1,34 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 21
+        versionCode rootProject.versionCode
+        versionName rootProject.versionName
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.squareup:javapoet:1.0.+'
+    compile 'com.android.support:support-v13:21.0.+'
+    compile files("../processor/build/libs/processor-${rootProject.version}.jar")
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.+'
+    androidTestCompile 'com.android.support.test:testing-support-lib:0.+'
+}
+
+task assembleProcessor(type: GradleBuild) {
+    dir = file('../processor')
+    tasks = ['assemble']
+}
+
+tasks.preBuild { dependsOn assembleProcessor }
