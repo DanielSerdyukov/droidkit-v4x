@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 public final class DroidKit {
 
     private DroidKit() {
+
     }
 
     public static void inject(@NonNull Object target) {
