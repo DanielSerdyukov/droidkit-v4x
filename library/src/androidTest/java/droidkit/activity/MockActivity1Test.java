@@ -2,7 +2,6 @@ package droidkit.activity;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,8 +26,13 @@ public class MockActivity1Test {
     }
 
     @Test
-    public void checkPreconditions() {
-        Assert.assertThat(mActivity, Matchers.notNullValue());
+    public void androidText1NotNull() {
+        Assert.assertNotNull(mActivity.getAndroidText1());
+    }
+
+    @Test
+    public void droidkitText1NotNull() {
+        Assert.assertNotNull(mActivity.getDroidkitText1());
     }
 
 }

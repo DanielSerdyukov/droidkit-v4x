@@ -9,26 +9,17 @@ import java.util.List;
 import droidkit.annotation.InjectView;
 import droidkit.util.DynamicException;
 import droidkit.util.DynamicField;
-import droidkit.util.DynamicMethod;
 
 /**
  * @author Daniel Serdyukov
  */
 public final class ViewInjector {
 
-    private static final String VIEW_INJECTOR = "$ViewInjector";
-
-    private static final String METHOD_INJECT = "inject";
-
     private ViewInjector() {
     }
 
     public static void inject(@NonNull View view, @NonNull Object target) {
-        try {
-            DynamicMethod.invokeStatic(target.getClass().getName() + VIEW_INJECTOR, METHOD_INJECT, view, target);
-        } catch (DynamicException e) {
-            tryInjectAtRuntime(view, target);
-        }
+        tryInjectAtRuntime(view, target);
     }
 
     private static void tryInjectAtRuntime(@NonNull View view, @NonNull Object target) {

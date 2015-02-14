@@ -2,6 +2,7 @@ package droidkit.processor;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
@@ -9,6 +10,9 @@ import java.util.Set;
 /**
  * @author Daniel Serdyukov
  */
+@SupportedAnnotationTypes({
+        "droidkit.annotation.InjectView"
+})
 public class AnnotationProcessor extends AbstractProcessor {
 
     @Override
