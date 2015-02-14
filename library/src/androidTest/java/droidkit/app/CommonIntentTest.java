@@ -1,32 +1,27 @@
 package droidkit.app;
 
 import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import junit.framework.TestCase;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Daniel Serdyukov
  */
-@RunWith(AndroidJUnit4.class)
-public class CommonIntentTest {
+public class CommonIntentTest extends TestCase {
 
-    @Test
-    public void openUrl() throws Exception {
+    public void testOpenUrl() throws Exception {
         Assert.assertFalse(IntentUtils.getResolution(InstrumentationRegistry.getContext(),
                 CommonIntent.openUrl("https://google.com")).isEmpty());
     }
 
-    @Test
-    public void search() throws Exception {
+    public void testSearch() throws Exception {
         Assert.assertFalse(IntentUtils.getResolution(InstrumentationRegistry.getContext(),
                 CommonIntent.search("olololo")).isEmpty());
     }
 
-    @Test
-    public void sendEmail() throws Exception {
+    public void testSendEmail() throws Exception {
         Assert.assertFalse(IntentUtils.getResolution(InstrumentationRegistry.getContext(),
                 CommonIntent.sendEmail(new String[]{
                                 "test@google.com"},
@@ -36,14 +31,12 @@ public class CommonIntentTest {
         ).isEmpty());
     }
 
-    @Test
-    public void sendSms() throws Exception {
+    public void testSendSms() throws Exception {
         Assert.assertFalse(IntentUtils.getResolution(InstrumentationRegistry.getContext(),
                 CommonIntent.sendSms("+1234567890", "Test Passed")).isEmpty());
     }
 
-    @Test
-    public void openDialer() throws Exception {
+    public void testOpenDialer() throws Exception {
         Assert.assertFalse(IntentUtils.getResolution(InstrumentationRegistry.getContext(),
                 CommonIntent.openDialer("+1234567890")).isEmpty());
     }
