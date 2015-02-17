@@ -11,6 +11,12 @@ interface ClassMaker {
 
     String AUTO_GENERATED = "AUTO-GENERATED FILE. DO NOT MODIFY.";
 
+    String PROXY = "$Proxy";
+
+    String M_DELEGATE = "mDelegate";
+
+    String M_LIFECYCLE = "mLifecycle";
+
     JavaFile make() throws IOException;
 
 }
