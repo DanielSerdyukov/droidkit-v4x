@@ -1,6 +1,5 @@
 package droidkit.app;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -22,11 +21,6 @@ public final class PlayIntent {
     }
 
     @NonNull
-    public static Intent details(@NonNull Context context) {
-        return details(context.getPackageName());
-    }
-
-    @NonNull
     public static Intent details(@NonNull String packageName) {
         return new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
     }
@@ -42,27 +36,7 @@ public final class PlayIntent {
     }
 
     @NonNull
-    public static Intent apps(@NonNull String query) {
-        return search(query, APPS);
-    }
-
-    @NonNull
-    public static Intent movies(@NonNull String query) {
-        return search(query, MOVIES);
-    }
-
-    @NonNull
-    public static Intent music(@NonNull String query) {
-        return search(query, MUSIC);
-    }
-
-    @NonNull
-    public static Intent books(@NonNull String query) {
-        return search(query, BOOKS);
-    }
-
-    @NonNull
-    private static Intent search(@NonNull String query, @NonNull String category) {
+    public static Intent search(@NonNull String query, @NonNull String category) {
         return new Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=" + query + "&c=" + category));
     }
 

@@ -11,7 +11,7 @@ import droidkit.annotation.InjectView;
 /**
  * @author Daniel Serdyukov
  */
-public class MockActivity1 extends Activity implements View.OnClickListener {
+public class InjectViewActivity extends Activity implements View.OnClickListener {
 
     @InjectView(android.R.id.button1)
     private Button mAndroidButton1;
@@ -22,11 +22,11 @@ public class MockActivity1 extends Activity implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(droidkit.test.R.layout.ac_mock1);
+        setContentView(droidkit.test.R.layout.ac_inject_view);
         if (savedInstanceState == null) {
             getFragmentManager()
                     .beginTransaction()
-                    .add(droidkit.test.R.id.content, new MockFragment1())
+                    .add(droidkit.test.R.id.content, new InjectViewFragment())
                     .commit();
         }
     }
@@ -58,9 +58,9 @@ public class MockActivity1 extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (mAndroidButton1 == v) {
-            new MockDialog1().show(getFragmentManager(), MockDialog1.class.getName());
+            new InjectViewDialog().show(getFragmentManager(), InjectViewDialog.class.getName());
         } else if (mDroidkitButton1 == v) {
-            new MockAlert1().show(getFragmentManager(), MockAlert1.class.getName());
+            new InjectViewAlert().show(getFragmentManager(), InjectViewAlert.class.getName());
         }
     }
 

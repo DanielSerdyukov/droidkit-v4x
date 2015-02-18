@@ -13,7 +13,7 @@ import droidkit.annotation.InjectView;
 /**
  * @author Daniel Serdyukov
  */
-public class MockDialog1 extends DialogFragment {
+public class InjectViewDialog extends DialogFragment {
 
     @InjectView(droidkit.test.R.id.group)
     private RadioGroup mChoice;
@@ -21,7 +21,7 @@ public class MockDialog1 extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(droidkit.test.R.layout.fmt_mock_dialog1, container, false);
+        return inflater.inflate(droidkit.test.R.layout.fmt_inject_view_dialog, container, false);
     }
 
     @Nullable

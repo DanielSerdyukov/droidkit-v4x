@@ -16,22 +16,20 @@ public final class Views {
     }
 
     @NonNull
-    public static <T extends View> T findById(@NonNull Object root, @IdRes int viewId) {
-        if (root instanceof View) {
-            return findById((View) root, viewId);
-        } else if (root instanceof Window) {
-            return findById((Window) root, viewId);
-        } else if (root instanceof Activity) {
-            return findById(((Activity) root).getWindow(), viewId);
-        } else if (root instanceof Dialog) {
-            return findById(((Dialog) root).getWindow(), viewId);
-        }
-        throw new IllegalArgumentException("Can't find view in " + root);
+    @SuppressWarnings("unchecked")
+    public static <T extends View> T findById(@NonNull View root, @IdRes int viewId) {
+        return (T) root.findViewById(viewId);
     }
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public static <T extends View> T findById(@NonNull View root, @IdRes int viewId) {
+    public static <T extends View> T findById(@NonNull Activity root, @IdRes int viewId) {
+        return (T) root.findViewById(viewId);
+    }
+
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <T extends View> T findById(@NonNull Dialog root, @IdRes int viewId) {
         return (T) root.findViewById(viewId);
     }
 

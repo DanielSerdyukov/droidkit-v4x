@@ -13,7 +13,7 @@ import droidkit.annotation.InjectView;
 /**
  * @author Daniel Serdyukov
  */
-public class MockAlert1 extends DialogFragment {
+public class InjectViewAlert extends DialogFragment {
 
     @InjectView(droidkit.test.R.id.group)
     private RadioGroup mChoice;
@@ -22,7 +22,7 @@ public class MockAlert1 extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         return new AlertDialog.Builder(getActivity())
                 .setView(LayoutInflater.from(getActivity())
-                        .inflate(droidkit.test.R.layout.fmt_mock_dialog1, null))
+                        .inflate(droidkit.test.R.layout.fmt_inject_view_dialog, null))
                 .setPositiveButton(android.R.string.ok, null)
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();

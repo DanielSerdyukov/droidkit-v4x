@@ -73,12 +73,25 @@ class FragmentMaker implements ClassMaker {
     }
 
     private void makeMethods(TypeSpec.Builder builder) {
+        makeOnCreate(builder);
         makeOnViewCreated(builder);
-        if (JavacUtils.isSubtype(mOriginElement, ANDROID_APP_DIALOG_FRAGMENT) ||
-                JavacUtils.isSubtype(mOriginElement, ANDROID_SUPPORT_V4_APP_DIALOG_FRAGMENT)) {
-            makeOnStart(builder);
-        }
+        makeOnStart(builder);
+        makeOnResume(builder);
+        makeOnPause(builder);
+        makeOnStop(builder);
+        makeOnDestroy(builder);
     }
+
+    private void makeOnCreate(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onCreate")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
+                .addStatement("super.onCreate(savedInstanceState)")
+                .addStatement("$L.onCreate(($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
 
     private void makeOnViewCreated(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.methodBuilder("onViewCreated")
@@ -93,14 +106,52 @@ class FragmentMaker implements ClassMaker {
 
     private void makeOnStart(TypeSpec.Builder builder) {
         final CodeBlock.Builder codeBlock = CodeBlock.builder();
-        codeBlock.beginControlFlow("if(getDialog() instanceof $T)", ClassName.get("android.app", "AlertDialog"));
-        codeBlock.addStatement("$L.injectViews(getDialog(), ($T) this)", M_LIFECYCLE, mOriginType);
-        codeBlock.endControlFlow();
+        if (JavacUtils.isSubtype(mOriginElement, ANDROID_APP_DIALOG_FRAGMENT) ||
+                JavacUtils.isSubtype(mOriginElement, ANDROID_SUPPORT_V4_APP_DIALOG_FRAGMENT)) {
+            codeBlock.beginControlFlow("if(getDialog() instanceof $T)", ClassName.get("android.app", "AlertDialog"));
+            codeBlock.addStatement("$L.injectViews(getDialog().getWindow(), ($T) this)", M_LIFECYCLE, mOriginType);
+            codeBlock.endControlFlow();
+        }
         builder.addMethod(MethodSpec.methodBuilder("onStart")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("super.onStart()")
                 .addCode(codeBlock.build())
+                .build());
+    }
+
+    private void makeOnResume(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onResume")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("super.onResume()")
+                .addStatement("$L.onResume(($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
+    private void makeOnPause(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onPause")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("$L.onPause(($T) this)", M_LIFECYCLE, mOriginType)
+                .addStatement("super.onPause()")
+                .build());
+    }
+
+    private void makeOnStop(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onStop")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("super.onStop()")
+                .build());
+    }
+
+    private void makeOnDestroy(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onDestroy")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("$L.onDestroy(($T) this)", M_LIFECYCLE, mOriginType)
+                .addStatement("super.onDestroy()")
                 .build());
     }
 

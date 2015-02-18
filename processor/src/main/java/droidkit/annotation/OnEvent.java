@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * @author Daniel Serdyukov
  */
 @Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface OnEvent {
 
 }

@@ -1,6 +1,8 @@
 package droidkit.app;
 
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 /**
  * @author Daniel Serdyukov
@@ -8,11 +10,17 @@ import android.support.annotation.NonNull;
  */
 public final class Lifecycle {
 
+    private Lifecycle() {
+    }
+
+    @Nullable
+    public static <T> Callbacks<T> get(@NonNull Class<?> type) {
+        return null;
+    }
+
     public static interface Callbacks<T> {
 
-        void onCreate(@NonNull T target);
-
-        void injectViews(@NonNull Object root, @NonNull T target);
+        void onCreate(@NonNull T target, @NonNull Bundle savedInstanceState);
 
         void onStart(@NonNull T target);
 

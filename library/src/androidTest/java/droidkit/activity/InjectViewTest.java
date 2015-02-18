@@ -15,20 +15,20 @@ import org.junit.android.ActivityRule;
 import org.junit.runner.RunWith;
 
 import droidkit.view.Views;
-import test.mock.MockActivity1;
-import test.mock.MockAlert1;
-import test.mock.MockDialog1;
-import test.mock.MockFragment1;
+import test.mock.InjectViewActivity;
+import test.mock.InjectViewAlert;
+import test.mock.InjectViewDialog;
+import test.mock.InjectViewFragment;
 
 /**
  * @author Daniel Serdyukov
  */
 @RunWith(AndroidJUnit4.class)
-public class MockActivity1Test {
+public class InjectViewTest {
 
-    final ActivityRule<MockActivity1> mRule = new ActivityRule<>(MockActivity1.class);
+    private final ActivityRule<InjectViewActivity> mRule = new ActivityRule<>(InjectViewActivity.class);
 
-    private MockActivity1 mActivity;
+    private InjectViewActivity mActivity;
 
     @Before
     public void setUp() throws Exception {
@@ -48,9 +48,9 @@ public class MockActivity1Test {
                 .withId(android.R.id.button1))
                 .perform(ViewActions.click());
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-        final Fragment fragment = mActivity.getFragmentManager().findFragmentByTag(MockDialog1.class.getName());
+        final Fragment fragment = mActivity.getFragmentManager().findFragmentByTag(InjectViewDialog.class.getName());
         Assert.assertNotNull(fragment);
-        Assert.assertNotNull(((MockDialog1) fragment).getChoice());
+        Assert.assertNotNull(((InjectViewDialog) fragment).getChoice());
     }
 
     @Test
@@ -66,9 +66,9 @@ public class MockActivity1Test {
                 .withId(droidkit.test.R.id.button1))
                 .perform(ViewActions.click());
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-        final Fragment fragment = mActivity.getFragmentManager().findFragmentByTag(MockAlert1.class.getName());
+        final Fragment fragment = mActivity.getFragmentManager().findFragmentByTag(InjectViewAlert.class.getName());
         Assert.assertNotNull(fragment);
-        Assert.assertNotNull(((MockAlert1) fragment).getChoice());
+        Assert.assertNotNull(((InjectViewAlert) fragment).getChoice());
     }
 
     @Test
@@ -77,7 +77,7 @@ public class MockActivity1Test {
         Assert.assertNotNull(expected);
         final Fragment fragment = mActivity.getFragmentManager().findFragmentById(droidkit.test.R.id.content);
         Assert.assertNotNull(fragment);
-        Assert.assertSame(expected, ((MockFragment1) fragment).getAndroidText1());
+        Assert.assertSame(expected, ((InjectViewFragment) fragment).getAndroidText1());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class MockActivity1Test {
         Assert.assertNotNull(expected);
         final Fragment fragment = mActivity.getFragmentManager().findFragmentById(droidkit.test.R.id.content);
         Assert.assertNotNull(fragment);
-        Assert.assertSame(expected, ((MockFragment1) fragment).getDroidKitText1());
+        Assert.assertSame(expected, ((InjectViewFragment) fragment).getDroidKitText1());
     }
 
 }

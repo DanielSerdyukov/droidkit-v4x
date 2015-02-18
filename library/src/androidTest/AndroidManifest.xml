@@ -2,7 +2,8 @@
     package="droidkit">
 
     <application android:allowBackup="true">
-        <activity android:name="test.mock.MockActivity1" />
+        <activity android:name="test.mock.InjectViewActivity" />
+        <activity android:name="test.mock.OnClickActivity" />
     </application>
 
 </manifest>

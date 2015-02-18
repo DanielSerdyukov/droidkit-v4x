@@ -13,8 +13,6 @@ interface ClassMaker {
 
     String PROXY = "$Proxy";
 
-    String M_DELEGATE = "mDelegate";
-
     String M_LIFECYCLE = "mLifecycle";
 
     JavaFile make() throws IOException;

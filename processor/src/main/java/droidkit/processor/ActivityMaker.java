@@ -71,6 +71,12 @@ class ActivityMaker implements ClassMaker {
     private void makeMethods(TypeSpec.Builder builder) {
         makeSetContentView1(builder);
         makeSetContentView2(builder);
+        makeOnCreate(builder);
+        makeOnStart(builder);
+        makeOnResume(builder);
+        makeOnPause(builder);
+        makeOnStop(builder);
+        makeOnDestroy(builder);
     }
 
     private void makeSetContentView1(TypeSpec.Builder builder) {
@@ -90,6 +96,59 @@ class ActivityMaker implements ClassMaker {
                 .addParameter(TypeName.INT, "layoutResID")
                 .addStatement("super.setContentView(layoutResID)")
                 .addStatement("$L.injectViews(getWindow(), ($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
+    private void makeOnCreate(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onCreate")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
+                .addStatement("super.onCreate(savedInstanceState)")
+                .addStatement("$L.onCreate(($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
+    private void makeOnStart(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onStart")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addStatement("super.onStart()")
+                .build());
+    }
+
+    private void makeOnResume(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onResume")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addStatement("super.onResume()")
+                .addStatement("$L.onResume(($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
+    private void makeOnPause(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onPause")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addStatement("$L.onPause(($T) this)", M_LIFECYCLE, mOriginType)
+                .addStatement("super.onPause()")
+                .build());
+    }
+
+    private void makeOnStop(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onStop")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addStatement("super.onStop()")
+                .build());
+    }
+
+    private void makeOnDestroy(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onDestroy")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addStatement("$L.onDestroy(($T) this)", M_LIFECYCLE, mOriginType)
+                .addStatement("super.onDestroy()")
                 .build());
     }
 

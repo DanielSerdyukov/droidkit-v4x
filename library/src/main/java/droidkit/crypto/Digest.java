@@ -12,11 +12,11 @@ import java.security.NoSuchAlgorithmException;
  */
 public class Digest {
 
-    public static final String MD5 = "MD5";
+    private static final String MD5 = "MD5";
 
-    public static final String SHA1 = "SHA-1";
+    private static final String SHA1 = "SHA-1";
 
-    public static final String SHA256 = "SHA-256";
+    private static final String SHA256 = "SHA-256";
 
     @NonNull
     public static byte[] md5(@NonNull byte[] data) throws DigestException {

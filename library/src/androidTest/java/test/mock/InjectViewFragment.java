@@ -13,7 +13,7 @@ import droidkit.annotation.InjectView;
 /**
  * @author Daniel Serdyukov
  */
-public class MockFragment1 extends Fragment {
+public class InjectViewFragment extends Fragment {
 
     @InjectView(android.R.id.text1)
     private TextView mAndroidText1;
@@ -24,12 +24,7 @@ public class MockFragment1 extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(droidkit.test.R.layout.fmt_mock1, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        return inflater.inflate(droidkit.test.R.layout.fmt_inject_view, container, false);
     }
 
     @Nullable
