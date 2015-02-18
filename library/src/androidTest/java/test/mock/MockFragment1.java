@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.TextView;
 
 import droidkit.annotation.InjectView;
 
@@ -15,11 +15,11 @@ import droidkit.annotation.InjectView;
  */
 public class MockFragment1 extends Fragment {
 
-    @InjectView(android.R.id.button1)
-    private Button mAndroidButton1;
+    @InjectView(android.R.id.text1)
+    private TextView mAndroidText1;
 
-    @InjectView(droidkit.test.R.id.button1)
-    private Button mDroidKitButton1;
+    @InjectView(droidkit.test.R.id.text1)
+    private TextView mDroidKitText1;
 
     @Nullable
     @Override
@@ -32,12 +32,14 @@ public class MockFragment1 extends Fragment {
         super.onViewCreated(view, savedInstanceState);
     }
 
-    public Button getAndroidButton1() {
-        return mAndroidButton1;
+    @Nullable
+    public TextView getAndroidText1() {
+        return mAndroidText1;
     }
 
-    public Button getDroidKitButton1() {
-        return mDroidKitButton1;
+    @Nullable
+    public TextView getDroidKitText1() {
+        return mDroidKitText1;
     }
 
 }

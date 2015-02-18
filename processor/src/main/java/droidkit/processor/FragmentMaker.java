@@ -30,8 +30,6 @@ class FragmentMaker implements ClassMaker {
 
     private ClassName mLifecycle;
 
-    private boolean mIdDialog;
-
     FragmentMaker(ProcessingEnvironment env) {
         mEnv = (JavacProcessingEnvironment) env;
     }
@@ -40,8 +38,6 @@ class FragmentMaker implements ClassMaker {
         mOriginElement = originType;
         mOriginType = ClassName.get(originType);
         mSuperType = TypeName.get(originType.getSuperclass());
-        mIdDialog = JavacUtils.isSubtype(originType, ANDROID_APP_DIALOG_FRAGMENT) ||
-                JavacUtils.isSubtype(originType, ANDROID_SUPPORT_V4_APP_DIALOG_FRAGMENT);
         return this;
     }
 
@@ -77,8 +73,10 @@ class FragmentMaker implements ClassMaker {
     }
 
     private void makeMethods(TypeSpec.Builder builder) {
-        if (!mIdDialog) {
-            makeOnViewCreated(builder);
+        makeOnViewCreated(builder);
+        if (JavacUtils.isSubtype(mOriginElement, ANDROID_APP_DIALOG_FRAGMENT) ||
+                JavacUtils.isSubtype(mOriginElement, ANDROID_SUPPORT_V4_APP_DIALOG_FRAGMENT)) {
+            makeOnStart(builder);
         }
     }
 
@@ -90,6 +88,19 @@ class FragmentMaker implements ClassMaker {
                 .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
                 .addStatement("super.onViewCreated(view, savedInstanceState)")
                 .addStatement("$L.injectViews(view, ($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
+    private void makeOnStart(TypeSpec.Builder builder) {
+        final CodeBlock.Builder codeBlock = CodeBlock.builder();
+        codeBlock.beginControlFlow("if(getDialog() instanceof $T)", ClassName.get("android.app", "AlertDialog"));
+        codeBlock.addStatement("$L.injectViews(getDialog(), ($T) this)", M_LIFECYCLE, mOriginType);
+        codeBlock.endControlFlow();
+        builder.addMethod(MethodSpec.methodBuilder("onStart")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("super.onStart()")
+                .addCode(codeBlock.build())
                 .build());
     }
 
