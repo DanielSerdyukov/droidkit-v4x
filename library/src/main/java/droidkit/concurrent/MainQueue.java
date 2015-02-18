@@ -37,6 +37,7 @@ public class MainQueue implements ExecQueue {
     }
 
     @NonNull
+    @Override
     public <V> Future<V> invoke(@NonNull Callable<V> task, long delay) {
         final MainFuture<V> future = new MainFuture<>(getHandler(), task);
         getHandler().postDelayed(future, delay);
@@ -44,6 +45,7 @@ public class MainQueue implements ExecQueue {
     }
 
     @NonNull
+    @Override
     public Future<?> invoke(@NonNull Runnable task, long delay) {
         final MainFuture<?> future = new MainFuture<>(getHandler(), task);
         getHandler().postDelayed(future, delay);
