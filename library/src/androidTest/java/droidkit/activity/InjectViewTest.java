@@ -10,6 +10,7 @@ import android.view.View;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.android.ActivityRule;
 import org.junit.runner.RunWith;
@@ -26,7 +27,8 @@ import test.mock.InjectViewFragment;
 @RunWith(AndroidJUnit4.class)
 public class InjectViewTest {
 
-    private final ActivityRule<InjectViewActivity> mRule = new ActivityRule<>(InjectViewActivity.class);
+    @Rule
+    public final ActivityRule<InjectViewActivity> mRule = new ActivityRule<>(InjectViewActivity.class);
 
     private InjectViewActivity mActivity;
 

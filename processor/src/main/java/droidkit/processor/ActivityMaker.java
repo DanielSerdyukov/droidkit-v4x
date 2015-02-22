@@ -72,6 +72,7 @@ class ActivityMaker implements ClassMaker {
         makeSetContentView1(builder);
         makeSetContentView2(builder);
         makeOnCreate(builder);
+        makeOnOptionsItemSelected(builder);
         makeOnStart(builder);
         makeOnResume(builder);
         makeOnPause(builder);
@@ -106,6 +107,17 @@ class ActivityMaker implements ClassMaker {
                 .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
                 .addStatement("super.onCreate(savedInstanceState)")
                 .addStatement("$L.onCreate(($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
+    private void makeOnOptionsItemSelected(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onOptionsItemSelected")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.BOOLEAN)
+                .addParameter(LifecycleMaker.MENU_ITEM, "menuItem")
+                .addStatement("return $L.performActionClick(menuItem)" +
+                        " || super.onOptionsItemSelected(menuItem)", M_LIFECYCLE)
                 .build());
     }
 

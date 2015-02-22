@@ -3,6 +3,7 @@ package droidkit.processor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import droidkit.annotation.InjectView;
+import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -22,7 +23,9 @@ import java.util.Set;
  * @author Daniel Serdyukov
  */
 @SupportedAnnotationTypes({
-        "droidkit.annotation.InjectView"
+        "droidkit.annotation.InjectView",
+        "droidkit.annotation.OnClick",
+        "droidkit.annotation.OnActionClick"
 })
 public class AnnotationProcessor extends AbstractProcessor {
 
@@ -53,6 +56,7 @@ public class AnnotationProcessor extends AbstractProcessor {
         }
         processInjectView(roundEnv);
         processOnClick(roundEnv);
+        processOnActionClick(roundEnv);
         try {
             for (final Map.Entry<Element, LifecycleMaker> entry : mLifecycleMakers.entrySet()) {
                 final Element element = entry.getKey();
@@ -96,6 +100,18 @@ public class AnnotationProcessor extends AbstractProcessor {
                 JavacLog.error(element, "@OnClick not supported for nested classes");
             } else {
                 getOrCreateMaker(originElement).emit(element, element.getAnnotation(OnClick.class));
+            }
+        }
+    }
+
+    private void processOnActionClick(RoundEnvironment roundEnv) {
+        final Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(OnActionClick.class);
+        for (final Element element : elements) {
+            final Element originElement = element.getEnclosingElement();
+            if (ElementKind.PACKAGE != originElement.getEnclosingElement().getKind()) {
+                JavacLog.error(element, "@OnActionClick not supported for nested classes");
+            } else {
+                getOrCreateMaker(originElement).emit(element, element.getAnnotation(OnActionClick.class));
             }
         }
     }

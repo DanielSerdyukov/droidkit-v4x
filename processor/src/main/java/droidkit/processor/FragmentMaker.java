@@ -75,6 +75,7 @@ class FragmentMaker implements ClassMaker {
     private void makeMethods(TypeSpec.Builder builder) {
         makeOnCreate(builder);
         makeOnViewCreated(builder);
+        makeOnOptionsItemSelected(builder);
         makeOnStart(builder);
         makeOnResume(builder);
         makeOnPause(builder);
@@ -101,6 +102,17 @@ class FragmentMaker implements ClassMaker {
                 .addParameter(ClassName.get("android.os", "Bundle"), "savedInstanceState")
                 .addStatement("super.onViewCreated(view, savedInstanceState)")
                 .addStatement("$L.injectViews(view, ($T) this)", M_LIFECYCLE, mOriginType)
+                .build());
+    }
+
+    private void makeOnOptionsItemSelected(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("onOptionsItemSelected")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.BOOLEAN)
+                .addParameter(LifecycleMaker.MENU_ITEM, "menuItem")
+                .addStatement("return $L.performActionClick(menuItem)" +
+                        " || super.onOptionsItemSelected(menuItem)", M_LIFECYCLE)
                 .build());
     }
 
