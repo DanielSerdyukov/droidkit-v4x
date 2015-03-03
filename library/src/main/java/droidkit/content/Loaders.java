@@ -36,6 +36,27 @@ public final class Loaders {
 
     @NonNull
     @SuppressWarnings("unchecked")
+    public static <D> android.content.Loader<D> restart(android.app.LoaderManager lm, int loaderId,
+                                                        @NonNull Bundle args, @NonNull Object delegate) {
+        if (delegate instanceof android.app.LoaderManager.LoaderCallbacks) {
+            return lm.restartLoader(loaderId, args, (android.app.LoaderManager.LoaderCallbacks<D>) delegate);
+        }
+        try {
+            android.app.LoaderManager.LoaderCallbacks<D> callbacks =
+                    Dynamic.init(getCallbacksClassName(loaderId, delegate), delegate);
+            return lm.restartLoader(loaderId, args, callbacks);
+        } catch (DynamicException e) {
+            throw new IllegalStateException("No such LoaderCallbacks", e);
+        }
+    }
+
+    public static void destroy(android.app.LoaderManager lm, int loaderId) {
+        lm.destroyLoader(loaderId);
+    }
+
+    // SUPPORT_V4
+    @NonNull
+    @SuppressWarnings("unchecked")
     public static <D> android.support.v4.content.Loader<D> init(android.support.v4.app.LoaderManager lm,
                                                                 int loaderId, @NonNull Bundle args,
                                                                 @NonNull Object delegate) {
@@ -46,22 +67,6 @@ public final class Loaders {
             android.support.v4.app.LoaderManager.LoaderCallbacks<D> callbacks =
                     Dynamic.init(getCallbacksClassName(loaderId, delegate, true), delegate);
             return lm.initLoader(loaderId, args, callbacks);
-        } catch (DynamicException e) {
-            throw new IllegalStateException("No such LoaderCallbacks", e);
-        }
-    }
-
-    @NonNull
-    @SuppressWarnings("unchecked")
-    public static <D> android.content.Loader<D> restart(android.app.LoaderManager lm, int loaderId,
-                                                        @NonNull Bundle args, @NonNull Object delegate) {
-        if (delegate instanceof android.app.LoaderManager.LoaderCallbacks) {
-            return lm.restartLoader(loaderId, args, (android.app.LoaderManager.LoaderCallbacks<D>) delegate);
-        }
-        try {
-            android.app.LoaderManager.LoaderCallbacks<D> callbacks =
-                    Dynamic.init(getCallbacksClassName(loaderId, delegate, true), delegate);
-            return lm.restartLoader(loaderId, args, callbacks);
         } catch (DynamicException e) {
             throw new IllegalStateException("No such LoaderCallbacks", e);
         }
@@ -82,10 +87,6 @@ public final class Loaders {
         } catch (DynamicException e) {
             throw new IllegalStateException("No such LoaderCallbacks", e);
         }
-    }
-
-    public static void destroy(android.app.LoaderManager lm, int loaderId) {
-        lm.destroyLoader(loaderId);
     }
 
     public static void destroy(android.support.v4.app.LoaderManager lm, int loaderId) {

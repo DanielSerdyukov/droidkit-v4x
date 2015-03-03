@@ -7,8 +7,8 @@ import junit.framework.Assert;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import droidkit.BuildConfig;
 import droidkit.sqlite.mock.User;
+import droidkit.test.BuildConfig;
 
 /**
  * @author Daniel Serdyukov
@@ -41,7 +41,7 @@ public class SQLiteLoaderTest extends ProviderTestCase2<SQLiteProvider> {
                 return super.loadInBackground();
             }
         };
-        loader.onStartLoading();
+        loader.startLoading();
         final User user = mSQLite.where(User.class).first();
         Assert.assertNotNull(user);
         Assert.assertEquals("John", user.getName());
