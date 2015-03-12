@@ -11,5 +11,4 @@
 
 -dontwarn javax.**
 -dontwarn com.squareup.**
--dontwarn droidkit.annotation.**
--dontwarn droidkit.processor.**
+-dontwarn droidkit.**

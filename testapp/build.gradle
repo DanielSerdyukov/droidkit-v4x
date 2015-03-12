@@ -1,4 +1,5 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
+apply plugin: 'org.robolectric'
 
 android {
     compileSdkVersion 22
@@ -7,13 +8,14 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 22
+        applicationId "droidkit.testapp"
         versionCode rootProject.versionCode
         versionName rootProject.versionName
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -29,18 +31,14 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup:javapoet:1.0.+'
-    compile 'com.android.support:support-v13:22.0.+'
-    compile 'org.sqlite.android:sqlite:3.8.8.+'
-    compile files("../processor/build/libs/processor-${rootProject.version}.jar")
+    compile project(':library')
+    compile 'com.android.support:appcompat-v7:22.0.+'
     testCompile 'junit:junit:4.+'
     testCompile 'org.mockito:mockito-core:1.9.+'
     testCompile 'org.robolectric:robolectric:2.+'
 }
 
-task assembleProcessor(type: GradleBuild) {
-    dir = file('../processor')
-    tasks = ['clean', 'assemble']
+robolectric {
+    include '**/*Test.class'
+    maxHeapSize = "2048m"
 }
-
-tasks.preBuild { dependsOn "assembleProcessor" }
