@@ -5,12 +5,12 @@ import android.support.annotation.Nullable;
 
 import java.util.Comparator;
 
+import droidkit.content.StringValue;
+
 /**
  * @author Daniel Serdyukov
  */
 public final class Objects {
-
-    private static final String EMPTY_STRING = "";
 
     private Objects() {
     }
@@ -25,7 +25,7 @@ public final class Objects {
 
     @NonNull
     public static String stringNonNull(@Nullable String object) {
-        return stringNonNull(object, EMPTY_STRING);
+        return stringNonNull(object, StringValue.EMPTY);
     }
 
     @NonNull

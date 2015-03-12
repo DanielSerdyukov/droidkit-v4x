@@ -8,11 +8,11 @@ import java.lang.reflect.Method;
 /**
  * @author Daniel Serdyukov
  */
-class ProxyInstance implements InvocationHandler {
+class InstanceDecor implements InvocationHandler {
 
     private final Object mTarget;
 
-    ProxyInstance(@NonNull Object target) {
+    InstanceDecor(@NonNull Object target) {
         mTarget = target;
     }
 

@@ -21,7 +21,7 @@ public final class TypedPrefs extends KeyValueProxy {
     }
 
     public static <T> T from(@NonNull SharedPreferences prefs, @NonNull Class<? extends T> type) {
-        return Dynamic.newProxy(new TypedPrefs(prefs), type);
+        return Dynamic.decorate(new TypedPrefs(prefs), type);
     }
 
 }

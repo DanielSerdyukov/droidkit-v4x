@@ -45,7 +45,7 @@ public class Aes {
         mKeySize = keySize;
     }
 
-    public static Aes getInstance() {
+    public static Aes get() {
         return Holder.INSTANCE;
     }
 

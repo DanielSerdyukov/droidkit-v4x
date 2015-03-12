@@ -1,5 +1,6 @@
 package droidkit.util;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 
 import java.lang.reflect.Constructor;
@@ -17,6 +18,8 @@ public final class Dynamic {
 
     private static final Map<Class<?>, Class<?>> BOXING = new HashMap<>();
 
+    private static final int CALLER_DEPTH = 2;
+
     static {
         BOXING.put(Boolean.TYPE, Boolean.class);
         BOXING.put(Byte.TYPE, Byte.class);
@@ -28,8 +31,6 @@ public final class Dynamic {
         BOXING.put(Float.TYPE, Float.class);
         BOXING.put(Void.TYPE, Void.TYPE);
     }
-
-    private static final int CALLER_DEPTH = 2;
 
     private Dynamic() {
     }
@@ -50,6 +51,7 @@ public final class Dynamic {
     }
 
     @NonNull
+    @SuppressLint("NewApi")
     public static <T> T init(@NonNull Class<? extends T> clazz, Object... args) throws DynamicException {
         try {
             if (args.length == 0) {
@@ -99,17 +101,17 @@ public final class Dynamic {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public static <T> T newProxy(@NonNull InvocationHandler handler, @NonNull Class<T> proxyInterface) {
+    public static <T> T decorate(@NonNull InvocationHandler handler, @NonNull Class<T> proxyInterface) {
         return (T) Proxy.newProxyInstance(proxyInterface.getClassLoader(), new Class<?>[]{proxyInterface}, handler);
     }
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public static <T> T newProxy(@NonNull Object target, @NonNull Class<T> proxyInterface) {
+    public static <T> T decorate(@NonNull Object target, @NonNull Class<T> proxyInterface) {
         return (T) Proxy.newProxyInstance(
                 proxyInterface.getClassLoader(),
                 new Class<?>[]{proxyInterface},
-                new ProxyInstance(target)
+                new InstanceDecor(target)
         );
     }
 
