@@ -179,6 +179,27 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         }
     }
 
+    public void testLike() throws Exception {
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .like(User.Columns.NAME, "Jo%")
+                .all();
+        Assert.assertEquals(5, users.size());
+        for (final User user : users) {
+            Assert.assertEquals("John", user.getName());
+        }
+    }
+
+    public void testInSelect() throws Exception {
+        final SQLiteResult<User> users = mSQLite.where(User.class)
+                .inSelect(User.Columns._ID, "SELECT _id FROM users WHERE name = 'John'")
+                .all();
+        Assert.assertEquals(5, users.size());
+        final long[] rowIds = {1, 3, 5, 7, 9};
+        for (int i = 0; i < rowIds.length; ++i) {
+            Assert.assertEquals(rowIds[i], users.get(i).getId());
+        }
+    }
+
     public void testCount() throws Exception {
         final long count = mSQLite.where(User.class)
                 .equalTo(User.Columns.NAME, "John")

@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode rootProject.buildNumber
         versionName rootProject.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -22,9 +22,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            testCoverageEnabled true
-        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -45,7 +42,7 @@ android {
 
 dependencies {
     compile 'com.squareup:javapoet:1.0.+'
-    compile 'com.android.support:support-v13:21.0.+'
+    compile 'com.android.support:support-v13:22.0.+'
     compile files("../processor/build/libs/processor.jar")
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.+'
     androidTestCompile 'com.android.support.test:testing-support-lib:0.+'

@@ -1,5 +1,6 @@
 package droidkit.sqlite;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -11,8 +12,8 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import droidkit.content.StringValue;
 import droidkit.io.IOUtils;
+import droidkit.log.Logger;
 
 /**
  * @author Daniel Serdyukov
@@ -43,7 +44,9 @@ public class SQLiteQuery<T> {
 
     private static final String GT_OR_EQ = " >= ?";
 
-    private static final String BETWEEN = " BETWEEN";
+    private static final String BETWEEN = " BETWEEN ? AND ?";
+
+    private static final String LIKE = " LIKE ?";
 
     private static final String MAX = "MAX";
 
@@ -86,9 +89,9 @@ public class SQLiteQuery<T> {
 
     private final SQLiteTable<T> mTable;
 
-    private final List<String> mOrderBy = new ArrayList<>();
+    private final StringBuilder mWhere = new StringBuilder();
 
-    private final List<String> mWhere = new ArrayList<>();
+    private final List<String> mOrderBy = new ArrayList<>();
 
     private final List<String> mWhereArgs = new ArrayList<>();
 
@@ -139,144 +142,70 @@ public class SQLiteQuery<T> {
     }
 
     @NonNull
-    public SQLiteQuery<T> equalTo(@NonNull String column, long value) {
-        return equalTo(column, String.valueOf(value));
+    public SQLiteQuery<T> equalTo(@NonNull String column, @NonNull Object value) {
+        return appendWhere(column, EQ, value);
+    }
+
+
+    @NonNull
+    public SQLiteQuery<T> notEqualTo(@NonNull String column, @NonNull Object value) {
+        return appendWhere(column, NOT_EQ, value);
     }
 
     @NonNull
-    public SQLiteQuery<T> equalTo(@NonNull String column, double value) {
-        return equalTo(column, String.valueOf(value));
+    public SQLiteQuery<T> lessThan(@NonNull String column, @NonNull Object value) {
+        return appendWhere(column, LT, value);
     }
 
     @NonNull
-    public SQLiteQuery<T> equalTo(@NonNull String column, @NonNull String value) {
-        mWhere.add(column + EQ);
-        mWhereArgs.add(value);
-        return this;
+    public SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, @NonNull Object value) {
+        return appendWhere(column, LT_OR_EQ, value);
     }
 
     @NonNull
-    public SQLiteQuery<T> equalTo(@NonNull String column, boolean value) {
-        return equalTo(column, value ? TRUE : FALSE);
+    public SQLiteQuery<T> greaterThan(@NonNull String column, @NonNull Object value) {
+        return appendWhere(column, GT, value);
     }
 
     @NonNull
-    public SQLiteQuery<T> notEqualTo(@NonNull String column, long value) {
-        return notEqualTo(column, String.valueOf(value));
+    public SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, @NonNull Object value) {
+        return appendWhere(column, GT_OR_EQ, value);
     }
 
     @NonNull
-    public SQLiteQuery<T> notEqualTo(@NonNull String column, double value) {
-        return notEqualTo(column, String.valueOf(value));
+    public SQLiteQuery<T> between(@NonNull String column, @NonNull Object value1, @NonNull Object value2) {
+        return appendWhere(column, BETWEEN, value1, value2);
     }
 
     @NonNull
-    public SQLiteQuery<T> notEqualTo(@NonNull String column, @NonNull String value) {
-        mWhere.add(column + NOT_EQ);
-        mWhereArgs.add(value);
-        return this;
+    public SQLiteQuery<T> like(@NonNull String column, @NonNull Object value) {
+        return appendWhere(column, LIKE, value);
     }
 
     @NonNull
-    public SQLiteQuery<T> notEqualTo(@NonNull String column, boolean value) {
-        return notEqualTo(column, value ? TRUE : FALSE);
-    }
-
-    @NonNull
-    public SQLiteQuery<T> lessThan(@NonNull String column, long value) {
-        return lessThan(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> lessThan(@NonNull String column, double value) {
-        return lessThan(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> lessThan(@NonNull String column, @NonNull String value) {
-        mWhere.add(column + LT);
-        mWhereArgs.add(value);
-        return this;
-    }
-
-    @NonNull
-    public SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, long value) {
-        return lessThanOrEqualTo(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, double value) {
-        return lessThanOrEqualTo(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> lessThanOrEqualTo(@NonNull String column, @NonNull String value) {
-        mWhere.add(column + LT_OR_EQ);
-        mWhereArgs.add(value);
-        return this;
-    }
-
-    @NonNull
-    public SQLiteQuery<T> greaterThan(@NonNull String column, long value) {
-        return greaterThan(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> greaterThan(@NonNull String column, double value) {
-        return greaterThan(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> greaterThan(@NonNull String column, @NonNull String value) {
-        mWhere.add(column + GT);
-        mWhereArgs.add(value);
-        return this;
-    }
-
-    @NonNull
-    public SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, long value) {
-        return greaterThanOrEqualTo(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, double value) {
-        return greaterThanOrEqualTo(column, String.valueOf(value));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> greaterThanOrEqualTo(@NonNull String column, @NonNull String value) {
-        mWhere.add(column + GT_OR_EQ);
-        mWhereArgs.add(value);
-        return this;
-    }
-
-    @NonNull
-    public SQLiteQuery<T> between(@NonNull String column, long value1, long value2) {
-        return between(column, String.valueOf(value1), String.valueOf(value2));
-    }
-
-    @NonNull
-    public SQLiteQuery<T> between(@NonNull String column, double value1, double value2) {
-        return between(column, String.valueOf(value1), String.valueOf(value2));
+    public SQLiteQuery<T> inSelect(@NonNull String column, @NonNull String select) {
+        return appendWhere(column, " IN(" + select + ")");
     }
 
     @NonNull
     public SQLiteQuery<T> and() {
-        mWhere.add(AND);
+        mWhere.append(AND);
         return this;
     }
 
     @NonNull
     public SQLiteQuery<T> or() {
-        mWhere.add(OR);
+        mWhere.append(OR);
         return this;
     }
 
     @NonNull
     public SQLiteResult<T> all() {
-        final Cursor cursor = mDb.query(makeQueryUri(), ROWID_COLUMNS, makeWhere(), makeWhereArgs(),
-                TextUtils.join(COMMA, mOrderBy));
-        cursor.moveToFirst();
+        @SuppressLint("Recycle")
+        final Cursor cursor = getRowIdsWithFixedUri();
+        if (!cursor.moveToFirst()) {
+            Logger.error("%s: %s", mTable.getName(), "empty result set");
+        }
         return new SQLiteResult<>(mDb, mUri, mTable, cursor);
     }
 
@@ -351,6 +280,14 @@ public class SQLiteQuery<T> {
     }
 
     @NonNull
+    Cursor getRowIdsWithFixedUri() {
+        final Cursor cursor = mDb.query(makeQueryUri(), ROWID_COLUMNS, where(), bindArgs(),
+                TextUtils.join(COMMA, mOrderBy));
+        cursor.setNotificationUri(mDb, mUri);
+        return cursor;
+    }
+
+    @NonNull
     private Uri makeQueryUri() {
         Uri uri = mUri;
         if (mHasGroupBayOrHavingOrLimit) {
@@ -369,16 +306,28 @@ public class SQLiteQuery<T> {
         return uri;
     }
 
+    private SQLiteQuery<T> appendWhere(@NonNull String column, @NonNull String operand, @NonNull Object... values) {
+        mWhere.append(column).append(operand);
+        for (final Object value : values) {
+            if (value instanceof Boolean) {
+                mWhereArgs.add(((boolean) value) ? TRUE : FALSE);
+            } else {
+                mWhereArgs.add(String.valueOf(value));
+            }
+        }
+        return this;
+    }
+
     @Nullable
-    private String makeWhere() {
-        if (!mWhere.isEmpty()) {
-            return TextUtils.join(StringValue.EMPTY, mWhere);
+    private String where() {
+        if (mWhere.length() > 0) {
+            return mWhere.toString();
         }
         return null;
     }
 
     @Nullable
-    private String[] makeWhereArgs() {
+    private String[] bindArgs() {
         if (!mWhereArgs.isEmpty()) {
             return mWhereArgs.toArray(new String[mWhereArgs.size()]);
         }
@@ -389,7 +338,7 @@ public class SQLiteQuery<T> {
     private <F> F applyFunc(@NonNull SQLiteFunc<F> func, @NonNull String function, @NonNull String column,
                             @NonNull F defaultValue) {
         final Cursor cursor = mDb.query(makeQueryUri(), new String[]{function + "(" + column + ")"},
-                makeWhere(), makeWhereArgs(), TextUtils.join(COMMA, mOrderBy));
+                where(), bindArgs(), TextUtils.join(COMMA, mOrderBy));
         try {
             if (cursor.moveToFirst()) {
                 return func.apply(cursor, column);
@@ -398,14 +347,6 @@ public class SQLiteQuery<T> {
             IOUtils.closeQuietly(cursor);
         }
         return defaultValue;
-    }
-
-    @NonNull
-    public SQLiteQuery<T> between(@NonNull String column, String value1, String value2) {
-        mWhere.add(column + BETWEEN + " ? AND ?");
-        mWhereArgs.add(value1);
-        mWhereArgs.add(value2);
-        return this;
     }
 
 }
