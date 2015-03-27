@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -19,8 +18,6 @@ import droidkit.log.Logger;
  * @author Daniel Serdyukov
  */
 public class SQLiteQuery<T> {
-
-    private static final String[] ROWID_COLUMNS = new String[]{BaseColumns._ID};
 
     private static final String ASC = " ASC";
 
@@ -202,11 +199,12 @@ public class SQLiteQuery<T> {
     @NonNull
     public SQLiteResult<T> all() {
         @SuppressLint("Recycle")
-        final Cursor cursor = getRowIdsWithFixedUri();
+        final Cursor cursor = mDb.query(makeQueryUri(), null, where(), bindArgs(), TextUtils.join(COMMA, mOrderBy));
+        cursor.setNotificationUri(mDb, mUri);
         if (!cursor.moveToFirst()) {
             Logger.error("%s: %s", mTable.getName(), "empty result set");
         }
-        return new SQLiteResult<>(mDb, mUri, mTable, cursor);
+        return new SQLiteResult<>(mTable, cursor);
     }
 
     @Nullable
@@ -280,11 +278,8 @@ public class SQLiteQuery<T> {
     }
 
     @NonNull
-    Cursor getRowIdsWithFixedUri() {
-        final Cursor cursor = mDb.query(makeQueryUri(), ROWID_COLUMNS, where(), bindArgs(),
-                TextUtils.join(COMMA, mOrderBy));
-        cursor.setNotificationUri(mDb, mUri);
-        return cursor;
+    public Uri getUri() {
+        return mUri;
     }
 
     @NonNull

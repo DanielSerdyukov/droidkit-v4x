@@ -1,10 +1,7 @@
 package droidkit.sqlite;
 
 import android.annotation.SuppressLint;
-import android.content.ContentResolver;
-import android.database.ContentObserver;
 import android.database.Cursor;
-import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 
@@ -19,67 +16,46 @@ import droidkit.io.IOUtils;
 @SuppressLint("NewApi")
 public class SQLiteResult<T> extends AbstractList<T> implements Closeable, AutoCloseable {
 
-    private final ContentResolver mDb;
-
-    private final Uri mUri;
-
     private final SQLiteTable<T> mTable;
 
-    private final Cursor mRowIds;
+    private final Cursor mCursor;
 
     private final int mRowIdColumnIndex;
 
-    SQLiteResult(@NonNull ContentResolver db, @NonNull Uri uri, @NonNull SQLiteTable<T> table,
-                 @NonNull Cursor rowIds) {
-        mDb = db;
-        mUri = uri;
+    SQLiteResult(@NonNull SQLiteTable<T> table,
+                 @NonNull Cursor cursor) {
         mTable = table;
-        mRowIds = rowIds;
-        mRowIdColumnIndex = rowIds.getColumnIndexOrThrow(BaseColumns._ID);
+        mCursor = cursor;
+        mRowIdColumnIndex = cursor.getColumnIndexOrThrow(BaseColumns._ID);
     }
 
     @Override
     public T get(int location) {
-        if (!mRowIds.moveToPosition(location)) {
+        if (!mCursor.moveToPosition(location)) {
             throw new ArrayIndexOutOfBoundsException(location);
         }
-        final long rowId = mRowIds.getLong(mRowIdColumnIndex);
+        final long rowId = mCursor.getLong(mRowIdColumnIndex);
         T instance = mTable.getRow(rowId);
         if (instance == null) {
-            instance = query(rowId);
+            instance = mTable.instantiate(mCursor);
         }
         return instance;
     }
 
     @Override
     public int size() {
-        return mRowIds.getCount();
-    }
-
-    public void registerContentObserver(@NonNull ContentObserver observer) {
-        mRowIds.registerContentObserver(observer);
-    }
-
-    public void unregisterContentObserver(@NonNull ContentObserver observer) {
-        mRowIds.unregisterContentObserver(observer);
+        return mCursor.getCount();
     }
 
     @Override
     public void close() {
-        IOUtils.closeQuietly(mRowIds);
+        IOUtils.closeQuietly(mCursor);
     }
 
-    private T query(long rowId) {
-        final Cursor cursor = mDb.query(mUri, null, SQLiteProvider.WHERE_ID_EQ,
-                new String[]{String.valueOf(rowId)}, null);
-        try {
-            if (!cursor.moveToFirst()) {
-                throw new ArrayIndexOutOfBoundsException(cursor.getPosition());
-            }
-            return mTable.instantiate(cursor);
-        } finally {
-            IOUtils.closeQuietly(cursor);
-        }
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        IOUtils.closeQuietly(mCursor);
     }
 
 }

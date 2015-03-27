@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 
 import droidkit.concurrent.MainQueue;
 import droidkit.io.IOUtils;
+import droidkit.log.Logger;
 
 /**
  * @author Daniel Serdyukov
@@ -42,7 +43,7 @@ public class SQLiteLoader<D> extends AsyncTaskLoader<SQLiteResult<D>> {
     @Override
     public SQLiteResult<D> loadInBackground() {
         final SQLiteResult<D> result = mQuery.all();
-        result.registerContentObserver(mObserver);
+        getContext().getContentResolver().registerContentObserver(mQuery.getUri(), true, mObserver);
         return result;
     }
 
@@ -76,6 +77,7 @@ public class SQLiteLoader<D> extends AsyncTaskLoader<SQLiteResult<D>> {
 
     @Override
     protected void onStopLoading() {
+        getContext().getContentResolver().unregisterContentObserver(mObserver);
         cancelLoad();
     }
 
