@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 
 import droidkit.concurrent.MainQueue;
 import droidkit.io.IOUtils;
-import droidkit.log.Logger;
 
 /**
  * @author Daniel Serdyukov
@@ -77,13 +76,13 @@ public class SQLiteLoader<D> extends AsyncTaskLoader<SQLiteResult<D>> {
 
     @Override
     protected void onStopLoading() {
-        getContext().getContentResolver().unregisterContentObserver(mObserver);
         cancelLoad();
     }
 
     @Override
     protected void onReset() {
         onStopLoading();
+        getContext().getContentResolver().unregisterContentObserver(mObserver);
         if (mResult != null) {
             IOUtils.closeQuietly(mResult);
         }
