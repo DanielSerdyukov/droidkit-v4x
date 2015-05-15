@@ -44,17 +44,12 @@ dependencies {
     compile 'com.squareup:javapoet:1.0.+'
     compile 'com.android.support:support-v13:22.0.+'
     compile files("../processor/build/libs/processor.jar")
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.+'
-    androidTestCompile 'com.android.support.test:testing-support-lib:0.+'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.1'
 }
 
 task buildProcessor(type: GradleBuild) {
     dir = file('../processor')
     tasks = ['assemble']
-}
-
-tasks.preBuild {
-    dependsOn buildProcessor
 }
 
 if (project.hasProperty("bintrayUser")) {

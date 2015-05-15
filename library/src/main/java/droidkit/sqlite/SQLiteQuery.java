@@ -233,6 +233,10 @@ public class SQLiteQuery<T> {
         return null;
     }
 
+    public int remove() {
+        return mDb.delete(makeQueryUri(), where(), bindArgs());
+    }
+
     public int maxInt(@NonNull String column) {
         return applyFunc(INT_FUNC, MAX, column, 0);
     }

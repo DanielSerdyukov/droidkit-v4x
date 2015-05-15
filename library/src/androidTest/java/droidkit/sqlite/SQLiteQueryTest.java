@@ -212,4 +212,15 @@ public class SQLiteQueryTest extends ProviderTestCase2<SQLiteProvider> {
         Assert.assertEquals(2, count);
     }
 
+    public void testRemove() throws Exception {
+        final int removed = mSQLite.where(User.class)
+                .equalTo(User.Columns.NAME, "Jane")
+                .remove();
+        Assert.assertEquals(5, removed);
+        final SQLiteResult<User> users = mSQLite.all(User.class);
+        for (final User user : users) {
+            Assert.assertEquals("John", user.getName());
+        }
+    }
+
 }
