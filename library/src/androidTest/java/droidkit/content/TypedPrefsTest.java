@@ -3,39 +3,47 @@ package droidkit.content;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.Assert;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import droidkit.content.BoolValue;
-import droidkit.content.FloatValue;
-import droidkit.content.IntValue;
-import droidkit.content.LongValue;
-import droidkit.content.StringSetValue;
-import droidkit.content.StringValue;
-import droidkit.content.TypedPrefs;
-
 /**
  * @author Daniel Serdyukov
  */
-public class TypedPrefsTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class TypedPrefsTest {
 
     private SharedPreferences mPrefs;
 
     private Settings mSettings;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mPrefs.edit().clear().apply();
-        mSettings = TypedPrefs.from(getContext(), Settings.class);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(InstrumentationRegistry.getContext());
+        mSettings = TypedPrefs.from(InstrumentationRegistry.getContext(), Settings.class);
     }
 
+    @Test
+    public void testSetupDefaults() throws Exception {
+        TypedPrefs.setupDefaults(InstrumentationRegistry.getContext(), Preconditions.class);
+        final Preconditions prefs = TypedPrefs.from(InstrumentationRegistry.getContext(), Preconditions.class);
+        Assert.assertEquals(10, prefs.version().get());
+        Assert.assertEquals("test", prefs.name().get());
+        Assert.assertTrue(prefs.enabled().get());
+        Assert.assertEquals(100L, prefs.time().get());
+        Assert.assertEquals(200.5f, prefs.distance().get(), 0f);
+    }
+
+    @Test
     public void testIntValue() throws Exception {
         final IntValue version = mSettings.version();
         Assert.assertNotNull(version);
@@ -45,6 +53,7 @@ public class TypedPrefsTest extends AndroidTestCase {
         Assert.assertEquals(mPrefs.getInt("version", IntValue.EMPTY), version.get());
     }
 
+    @Test
     public void testStringValue() throws Exception {
         final StringValue name = mSettings.name();
         Assert.assertNotNull(name);
@@ -54,6 +63,7 @@ public class TypedPrefsTest extends AndroidTestCase {
         Assert.assertEquals(mPrefs.getString("name", StringValue.EMPTY), name.get());
     }
 
+    @Test
     public void testBoolValue() throws Exception {
         final BoolValue enabled = mSettings.enabled();
         Assert.assertNotNull(enabled);
@@ -66,6 +76,7 @@ public class TypedPrefsTest extends AndroidTestCase {
         Assert.assertEquals(mPrefs.getBoolean("enabled", BoolValue.EMPTY), enabled.get());
     }
 
+    @Test
     public void testLongValue() throws Exception {
         final LongValue time = mSettings.time();
         Assert.assertNotNull(time);
@@ -76,15 +87,17 @@ public class TypedPrefsTest extends AndroidTestCase {
         Assert.assertEquals(mPrefs.getLong("time", LongValue.EMPTY), time.get());
     }
 
+    @Test
     public void testFloatValue() throws Exception {
         final FloatValue distance = mSettings.distance();
         Assert.assertNotNull(distance);
-        Assert.assertEquals(FloatValue.EMPTY, distance.get());
+        Assert.assertEquals(FloatValue.EMPTY, distance.get(), 0f);
         distance.set(100f);
-        Assert.assertEquals(100f, distance.get());
-        Assert.assertEquals(mPrefs.getFloat("distance", FloatValue.EMPTY), distance.get());
+        Assert.assertEquals(100f, distance.get(), 0f);
+        Assert.assertEquals(mPrefs.getFloat("distance", FloatValue.EMPTY), distance.get(), 0f);
     }
 
+    @Test
     public void testStringSetValue() throws Exception {
         final StringSetValue lines = mSettings.lines();
         Assert.assertNotNull(lines);
@@ -97,7 +110,12 @@ public class TypedPrefsTest extends AndroidTestCase {
         Assert.assertEquals(mPrefs.getStringSet("lines", Collections.<String>emptySet()), lines.get());
     }
 
-    private static interface Settings {
+    @After
+    public void tearDown() throws Exception {
+        mPrefs.edit().clear().apply();
+    }
+
+    private interface Settings {
 
         IntValue version();
 
@@ -110,6 +128,25 @@ public class TypedPrefsTest extends AndroidTestCase {
         FloatValue distance();
 
         StringSetValue lines();
+
+    }
+
+    private interface Preconditions {
+
+        @Value(intValue = 10)
+        IntValue version();
+
+        @Value(stringValue = "test")
+        StringValue name();
+
+        @Value(boolValue = true)
+        BoolValue enabled();
+
+        @Value(longValue = 100L)
+        LongValue time();
+
+        @Value(floatValue = 200.5f)
+        FloatValue distance();
 
     }
 

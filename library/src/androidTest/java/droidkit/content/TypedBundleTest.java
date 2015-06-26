@@ -4,39 +4,33 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 
-import junit.framework.Assert;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import droidkit.content.BoolValue;
-import droidkit.content.DoubleValue;
-import droidkit.content.FloatValue;
-import droidkit.content.IntValue;
-import droidkit.content.LongValue;
-import droidkit.content.ParcelableValue;
-import droidkit.content.StringListValue;
-import droidkit.content.StringValue;
-import droidkit.content.TypedBundle;
-
 /**
  * @author Daniel Serdyukov
  */
-public class TypedBundleTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class TypedBundleTest {
 
     private Bundle mBundle;
 
     private Extra mExtra;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
         mBundle = new Bundle();
         mExtra = TypedBundle.from(mBundle, Extra.class);
     }
 
+    @Test
     public void testIntValue() throws Exception {
         final IntValue version = mExtra.version();
         Assert.assertNotNull(version);
@@ -46,6 +40,7 @@ public class TypedBundleTest extends AndroidTestCase {
         Assert.assertEquals(mBundle.getInt("version", IntValue.EMPTY), version.get());
     }
 
+    @Test
     public void testStringValue() throws Exception {
         final StringValue name = mExtra.name();
         Assert.assertNotNull(name);
@@ -55,6 +50,7 @@ public class TypedBundleTest extends AndroidTestCase {
         Assert.assertEquals(mBundle.getString("name", StringValue.EMPTY), name.get());
     }
 
+    @Test
     public void testBoolValue() throws Exception {
         final BoolValue enabled = mExtra.enabled();
         Assert.assertNotNull(enabled);
@@ -67,6 +63,7 @@ public class TypedBundleTest extends AndroidTestCase {
         Assert.assertEquals(mBundle.getBoolean("enabled", BoolValue.EMPTY), enabled.get());
     }
 
+    @Test
     public void testLongValue() throws Exception {
         final LongValue time = mExtra.time();
         Assert.assertNotNull(time);
@@ -77,24 +74,27 @@ public class TypedBundleTest extends AndroidTestCase {
         Assert.assertEquals(mBundle.getLong("time", LongValue.EMPTY), time.get());
     }
 
+    @Test
     public void testDoubleValue() throws Exception {
         final DoubleValue lat = mExtra.lat();
         Assert.assertNotNull(lat);
-        Assert.assertEquals(DoubleValue.EMPTY, lat.get());
+        Assert.assertEquals(DoubleValue.EMPTY, lat.get(), 0d);
         lat.set(60.39856);
-        Assert.assertEquals(60.39856, lat.get());
-        Assert.assertEquals(mBundle.getDouble("lat", DoubleValue.EMPTY), lat.get());
+        Assert.assertEquals(60.39856, lat.get(), 0d);
+        Assert.assertEquals(mBundle.getDouble("lat", DoubleValue.EMPTY), lat.get(), 0d);
     }
 
+    @Test
     public void testFloatValue() throws Exception {
         final FloatValue distance = mExtra.distance();
         Assert.assertNotNull(distance);
-        Assert.assertEquals(FloatValue.EMPTY, distance.get());
+        Assert.assertEquals(FloatValue.EMPTY, distance.get(), 0f);
         distance.set(100f);
-        Assert.assertEquals(100f, distance.get());
-        Assert.assertEquals(mBundle.getFloat("distance", FloatValue.EMPTY), distance.get());
+        Assert.assertEquals(100f, distance.get(), 0f);
+        Assert.assertEquals(mBundle.getFloat("distance", FloatValue.EMPTY), distance.get(), 0f);
     }
 
+    @Test
     public void testStringListValue() throws Exception {
         final StringListValue lines = mExtra.lines();
         Assert.assertNotNull(lines);
@@ -107,6 +107,7 @@ public class TypedBundleTest extends AndroidTestCase {
         Assert.assertEquals(mBundle.getStringArrayList("lines"), lines.get());
     }
 
+    @Test
     public void testParcelableValue() throws Exception {
         final ParcelableValue location = mExtra.location();
         final Location latLng = new Location(LocationManager.PASSIVE_PROVIDER);
@@ -121,6 +122,7 @@ public class TypedBundleTest extends AndroidTestCase {
         Assert.assertSame(mBundle, mExtra.build());
     }
 
+    @Test
     public void testPack() throws Exception {
         final Extra extra = TypedBundle.from(Extra.class);
         extra.version().set(1);
@@ -134,11 +136,11 @@ public class TypedBundleTest extends AndroidTestCase {
         Assert.assertEquals("John", pack.getString("name"));
         Assert.assertTrue(pack.getBoolean("enabled"));
         Assert.assertEquals(2014, pack.getLong("time"));
-        Assert.assertEquals(60.334455, pack.getDouble("lat"));
-        Assert.assertEquals(50f, pack.getFloat("distance"));
+        Assert.assertEquals(60.334455, pack.getDouble("lat"), 0d);
+        Assert.assertEquals(50f, pack.getFloat("distance"), 0f);
     }
 
-    private static interface Extra {
+    private interface Extra {
 
         IntValue version();
 
