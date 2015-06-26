@@ -2,7 +2,6 @@ package droidkit.app;
 
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.Loader;
 import android.view.Menu;
@@ -12,7 +11,6 @@ import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 import droidkit.annotation.OnCreateLoader;
-import droidkit.annotation.OnEvent;
 import droidkit.annotation.OnLoadFinished;
 import droidkit.content.Loaders;
 import droidkit.content.SupportFakeLoader;
@@ -33,8 +31,6 @@ public class MainActivity extends FragmentActivity {
     boolean mSettingsActionClicked;
 
     Cursor mFakeCursor;
-
-    MockEvent mOnEvent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,11 +74,6 @@ public class MainActivity extends FragmentActivity {
     @OnCreateLoader(value = droidkit.test.R.id.fake_loader, support = true)
     Loader<Cursor> onCreateFakeLoader() {
         return new SupportFakeLoader(getApplicationContext(), MainActivity.class.getSimpleName());
-    }
-
-    @OnEvent
-    void onMockEvent(@NonNull MockEvent event) {
-        mOnEvent = event;
     }
 
 }

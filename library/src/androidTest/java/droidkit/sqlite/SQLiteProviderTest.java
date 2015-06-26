@@ -68,6 +68,7 @@ public class SQLiteProviderTest extends ProviderTestCase2<SQLiteProvider> {
         mDb.delete(User.URI, User.Columns.AGE + "=?", new String[]{"26"});
         final Cursor cursor = mDb.query(uri, null, null, null, null);
         Assert.assertFalse(cursor.moveToFirst());
+        cursor.close();
     }
 
     @Override

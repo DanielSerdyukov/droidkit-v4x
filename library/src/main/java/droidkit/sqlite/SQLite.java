@@ -1,12 +1,16 @@
 package droidkit.sqlite;
 
+import android.content.ContentProvider;
+import android.content.ContentProviderClient;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -31,14 +35,14 @@ public class SQLite {
 
     private static final int TRANSACTION_CAPACITY = 1024;
 
-    private final ContentResolver mDb;
+    private final ContentResolver mResolver;
 
     private final String mAuthority;
 
     private ArrayList<ContentProviderOperation> mOperations;
 
-    SQLite(@NonNull ContentResolver db, @NonNull String authority) {
-        mDb = db;
+    SQLite(@NonNull ContentResolver resolver, @NonNull String authority) {
+        mResolver = resolver;
         mAuthority = authority;
     }
 
@@ -48,6 +52,10 @@ public class SQLite {
 
     static void attach(@NonNull String authority) {
         AUTHORITY_REF.lazySet(authority);
+    }
+
+    static void attach(@NonNull ProviderInfo info) {
+        AUTHORITY_REF.lazySet(info.authority);
     }
 
     @NonNull
@@ -89,7 +97,7 @@ public class SQLite {
     public void commitTransaction() {
         if (mOperations != null) {
             try {
-                mDb.applyBatch(mAuthority, mOperations);
+                mResolver.applyBatch(mAuthority, mOperations);
             } catch (RemoteException | OperationApplicationException e) {
                 throw new SQLiteException(e);
             }
@@ -104,7 +112,7 @@ public class SQLite {
         if (mOperations != null) {
             acquireTable(type).insert(mOperations, acquireUri(type), object);
         } else {
-            acquireTable(type).insert(mDb, acquireUri(type), object);
+            acquireTable(type).insert(mResolver, acquireUri(type), object);
         }
         return this;
     }
@@ -115,7 +123,7 @@ public class SQLite {
         if (mOperations != null) {
             acquireTable(type).update(mOperations, acquireUri(type), object);
         } else {
-            acquireTable(type).update(mDb, acquireUri(type), object);
+            acquireTable(type).update(mResolver, acquireUri(type), object);
         }
         return this;
     }
@@ -126,14 +134,14 @@ public class SQLite {
         if (mOperations != null) {
             acquireTable(type).delete(mOperations, acquireUri(type), object);
         } else {
-            acquireTable(type).delete(mDb, acquireUri(type), object);
+            acquireTable(type).delete(mResolver, acquireUri(type), object);
         }
         return this;
     }
 
     @NonNull
     public <T> SQLiteQuery<T> where(@NonNull Class<T> type) {
-        return new SQLiteQuery<>(mDb, acquireUri(type), SQLite.<T>acquireTable(type));
+        return new SQLiteQuery<>(mResolver, acquireUri(type), SQLite.<T>acquireTable(type));
     }
 
     @NonNull
@@ -142,7 +150,24 @@ public class SQLite {
     }
 
     public <T> int truncate(@NonNull Class<T> type) {
-        return mDb.delete(acquireUri(type), null, null);
+        return mResolver.delete(acquireUri(type), null, null);
+    }
+
+    public void clearDatabase() {
+        final String authority = AUTHORITY_REF.get();
+        if (!TextUtils.isEmpty(authority)) {
+            final ContentProviderClient providerClient = mResolver.acquireContentProviderClient(authority);
+            if (providerClient != null) {
+                try {
+                    final ContentProvider provider = providerClient.getLocalContentProvider();
+                    if (provider instanceof SQLiteProvider) {
+                        ((SQLiteProvider) provider).clearDatabase();
+                    }
+                } finally {
+                    providerClient.release();
+                }
+            }
+        }
     }
 
 }

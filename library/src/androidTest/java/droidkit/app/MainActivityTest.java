@@ -111,11 +111,4 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 CursorUtils.getString(fragment.mFakeCursor, FakeLoader.NAME));
     }
 
-    public void testOnEvent() throws Exception {
-        final MockEvent event = new MockEvent();
-        EventBus.post(event);
-        Assert.assertEquals(event, mActivity.mOnEvent);
-        Assert.assertEquals(event, mActivity.mMockFrame.mEvent);
-    }
-
 }

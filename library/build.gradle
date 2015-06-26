@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    buildToolsVersion "23.0.0 rc2"
 
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 22
-        versionCode rootProject.buildNumber
+        versionCode rootProject.versionCode
         versionName rootProject.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -41,10 +41,11 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup:javapoet:1.0.+'
-    compile 'com.android.support:support-v13:22.0.+'
+    compile 'com.squareup:javapoet:1.1.0'
+    compile 'com.android.support:support-v13:22.2.0'
     compile files("../processor/build/libs/processor.jar")
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.1'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2'
+    androidTestCompile 'com.android.support.test:runner:0.3'
 }
 
 task buildProcessor(type: GradleBuild) {

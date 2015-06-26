@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import droidkit.io.IOUtils;
-import droidkit.log.Logger;
 
 /**
  * @author Daniel Serdyukov
@@ -201,9 +200,6 @@ public class SQLiteQuery<T> {
         @SuppressLint("Recycle")
         final Cursor cursor = mDb.query(makeQueryUri(), null, where(), bindArgs(), TextUtils.join(COMMA, mOrderBy));
         cursor.setNotificationUri(mDb, mUri);
-        if (!cursor.moveToFirst()) {
-            Logger.error("%s: %s", mTable.getName(), "empty result set");
-        }
         return new SQLiteResult<>(mTable, cursor);
     }
 

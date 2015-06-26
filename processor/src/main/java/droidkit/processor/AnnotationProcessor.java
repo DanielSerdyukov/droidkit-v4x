@@ -18,7 +18,6 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
@@ -27,7 +26,6 @@ import droidkit.annotation.InjectView;
 import droidkit.annotation.OnActionClick;
 import droidkit.annotation.OnClick;
 import droidkit.annotation.OnCreateLoader;
-import droidkit.annotation.OnEvent;
 import droidkit.annotation.SQLiteObject;
 
 /**
@@ -35,7 +33,6 @@ import droidkit.annotation.SQLiteObject;
  */
 @SupportedAnnotationTypes({
         "droidkit.annotation.SQLiteObject",
-        "droidkit.annotation.OnEvent",
         "droidkit.annotation.InjectView",
         "droidkit.annotation.OnClick",
         "droidkit.annotation.OnActionClick",
@@ -54,8 +51,6 @@ public class AnnotationProcessor extends AbstractProcessor {
     private static final String ANDROID_APP_FRAGMENT = "android.app.Fragment";
 
     private static final String ANDROID_SUPPORT_V4_APP_FRAGMENT = "android.support.v4.app.Fragment";
-
-    private final Map<Element, EventBusMaker> mEventBusMakers = new HashMap<>();
 
     private final Map<Element, String> mViewInjectors = new HashMap<>();
 
@@ -78,7 +73,6 @@ public class AnnotationProcessor extends AbstractProcessor {
             return false;
         }
         try {
-            processEventBus(roundEnv);
             processViewInjections(roundEnv);
             processMethodInjections(roundEnv);
             processSQLiteObjects(roundEnv);
@@ -87,23 +81,6 @@ public class AnnotationProcessor extends AbstractProcessor {
             throw new RuntimeException(e);
         }
         return true;
-    }
-
-    private void processEventBus(RoundEnvironment roundEnv) throws Exception {
-        final Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(OnEvent.class);
-        for (final Element element : elements) {
-            final Element originType = element.getEnclosingElement();
-            checkInNestedClass(originType, "@OnEvent not supported for nested classes");
-            EventBusMaker maker = mEventBusMakers.get(originType);
-            if (maker == null) {
-                maker = new EventBusMaker(processingEnv, originType);
-                mEventBusMakers.put(originType, maker);
-            }
-            maker.emit((ExecutableElement) element);
-        }
-        for (final EventBusMaker maker : mEventBusMakers.values()) {
-            maker.make();
-        }
     }
 
     private void processViewInjections(RoundEnvironment roundEnv) throws Exception {
@@ -131,18 +108,15 @@ public class AnnotationProcessor extends AbstractProcessor {
                 final Element originType = element.getEnclosingElement();
                 checkInNestedClass(originType, "@" + annotation.getSimpleName() + " not supported for nested classes");
                 if (!classMakers.contains(originType)) {
-                    final boolean hasEventBus = mEventBusMakers.containsKey(originType);
                     final String viewInjectorName = mViewInjectors.get(originType);
                     if (mTypeUtils.isSubtype(originType, ANDROID_APP_ACTIVITY)) {
                         new ActivityMaker(processingEnv, originType)
-                                .setHasEventBus(hasEventBus)
                                 .setViewInjectorName(viewInjectorName)
                                 .make();
                         classMakers.add(originType);
                     } else if (mTypeUtils.isSubtype(originType, ANDROID_APP_FRAGMENT)
                             || mTypeUtils.isSubtype(originType, ANDROID_SUPPORT_V4_APP_FRAGMENT)) {
                         new FragmentMaker(processingEnv, originType)
-                                .setHasEventBus(hasEventBus)
                                 .setViewInjectorName(viewInjectorName)
                                 .make();
                         classMakers.add(originType);

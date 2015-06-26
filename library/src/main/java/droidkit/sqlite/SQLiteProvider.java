@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import droidkit.io.IOUtils;
 import droidkit.util.Dynamic;
 import droidkit.util.DynamicException;
 
@@ -76,7 +77,7 @@ public class SQLiteProvider extends ContentProvider {
     @Override
     public void attachInfo(Context context, ProviderInfo info) {
         super.attachInfo(context, info);
-        SQLite.attach(info.authority);
+        SQLite.attach(info);
     }
 
     @Override
@@ -256,6 +257,32 @@ public class SQLiteProvider extends ContentProvider {
     @SuppressWarnings("unused")
     protected void onDelete(@NonNull Uri baseUri, int affectedRows) {
         onChange(baseUri, affectedRows);
+    }
+
+    void clearDatabase() {
+        final Cursor cursor = mHelper.getReadableDatabase().rawQuery("SELECT name FROM sqlite_master" +
+                " WHERE type='table'" +
+                " AND name <> 'android_metadata'", null);
+        final List<String> tables = new ArrayList<>();
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    tables.add(cursor.getString(0));
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            IOUtils.closeQuietly(cursor);
+        }
+        final SQLiteDatabase db = mHelper.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            for (final String table : tables) {
+                db.execSQL("DELETE FROM " + table + ";");
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
     }
 
     @NonNull
