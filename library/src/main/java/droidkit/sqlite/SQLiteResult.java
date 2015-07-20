@@ -7,8 +7,7 @@ import android.support.annotation.NonNull;
 
 import java.io.Closeable;
 import java.util.AbstractList;
-
-import droidkit.io.IOUtils;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Daniel Serdyukov
@@ -18,44 +17,47 @@ public class SQLiteResult<T> extends AbstractList<T> implements Closeable, AutoC
 
     private final SQLiteTable<T> mTable;
 
-    private final Cursor mCursor;
+    private final AtomicReference<Cursor> mCursorRef;
 
     private final int mRowIdColumnIndex;
 
-    SQLiteResult(@NonNull SQLiteTable<T> table,
-                 @NonNull Cursor cursor) {
+    SQLiteResult(@NonNull SQLiteTable<T> table, @NonNull Cursor cursor) {
         mTable = table;
-        mCursor = cursor;
+        mCursorRef = new AtomicReference<>(cursor);
         mRowIdColumnIndex = cursor.getColumnIndexOrThrow(BaseColumns._ID);
+        SQLiteGuard.guard(this);
     }
 
     @Override
     public T get(int location) {
-        if (!mCursor.moveToPosition(location)) {
+        final Cursor cursor = mCursorRef.get();
+        if (!cursor.moveToPosition(location)) {
             throw new ArrayIndexOutOfBoundsException(location);
         }
-        final long rowId = mCursor.getLong(mRowIdColumnIndex);
+        final long rowId = cursor.getLong(mRowIdColumnIndex);
         T instance = mTable.getRow(rowId);
         if (instance == null) {
-            instance = mTable.instantiate(mCursor);
+            instance = mTable.instantiate(cursor);
         }
         return instance;
     }
 
     @Override
     public int size() {
-        return mCursor.getCount();
+        final Cursor cursor = mCursorRef.get();
+        if (cursor != null && !cursor.isClosed()) {
+            return cursor.getCount();
+        }
+        return 0;
     }
 
     @Override
     public void close() {
-        IOUtils.closeQuietly(mCursor);
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        IOUtils.closeQuietly(mCursor);
+    @NonNull
+    AtomicReference<Cursor> getCursorReference() {
+        return mCursorRef;
     }
 
 }
