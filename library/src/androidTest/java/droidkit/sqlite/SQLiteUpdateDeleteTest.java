@@ -89,4 +89,18 @@ public class SQLiteUpdateDeleteTest extends ProviderTestCase2<SQLiteProvider> {
                 .first());
     }
 
+    public void testTransactionRollback() throws Exception {
+        final User john = mSQLite.where(User.class)
+                .equalTo(User.Columns.NAME, "John")
+                .first();
+        Assert.assertNotNull(john);
+        mSQLite.beginTransaction();
+        mSQLite.delete(john);
+        mSQLite.rollbackTransaction();
+
+        Assert.assertNotNull(mSQLite.where(User.class)
+                .equalTo(User.Columns.NAME, "John")
+                .first());
+    }
+
 }

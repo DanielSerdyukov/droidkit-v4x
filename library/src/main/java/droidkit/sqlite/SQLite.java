@@ -94,6 +94,12 @@ public class SQLite {
         }
     }
 
+    public void rollbackTransaction() {
+        if (mOperations != null) {
+            removeOperations();
+        }
+    }
+
     public void commitTransaction() {
         if (mOperations != null) {
             try {
@@ -101,9 +107,13 @@ public class SQLite {
             } catch (RemoteException | OperationApplicationException e) {
                 throw new SQLiteException(e);
             }
-            mOperations.clear();
-            mOperations = null;
+            removeOperations();
         }
+    }
+
+    private void removeOperations() {
+        mOperations.clear();
+        mOperations = null;
     }
 
     @NonNull
